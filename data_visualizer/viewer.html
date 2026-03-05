@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+<meta charset="UTF-8">
+<title>namenu.sk viewer</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: "Courier New", monospace;
+    background: #0f0f0f;
+    color: #d4d4d4;
+    min-height: 100vh;
+    padding: 24px;
+  }
+
+  #drop-zone {
+    border: 2px dashed #444;
+    border-radius: 6px;
+    padding: 40px;
+    text-align: center;
+    margin-bottom: 24px;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  #drop-zone:hover, #drop-zone.drag-over { border-color: #7ec8a0; background: #1a1a1a; }
+  #drop-zone span { color: #888; font-size: 14px; }
+  #drop-zone strong { color: #7ec8a0; }
+
+  #toolbar {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  #toolbar input[type=text] {
+    background: #1a1a1a;
+    border: 1px solid #333;
+    color: #d4d4d4;
+    padding: 6px 10px;
+    font-family: inherit;
+    font-size: 13px;
+    border-radius: 4px;
+    width: 260px;
+    outline: none;
+  }
+  #toolbar input[type=text]:focus { border-color: #7ec8a0; }
+
+  .filter-btn {
+    background: #1a1a1a;
+    border: 1px solid #333;
+    color: #888;
+    padding: 5px 12px;
+    font-family: inherit;
+    font-size: 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .filter-btn:hover { border-color: #7ec8a0; color: #d4d4d4; }
+  .filter-btn.active { background: #1e3329; border-color: #7ec8a0; color: #7ec8a0; }
+
+  #meta { font-size: 12px; color: #555; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid #1e1e1e; }
+  #meta span { color: #7ec8a0; }
+
+  #stats-bar { display: flex; gap: 20px; margin-bottom: 24px; flex-wrap: wrap; }
+  .stat { font-size: 12px; color: #555; }
+  .stat strong { color: #d4d4d4; font-size: 16px; display: block; }
+
+  .restaurant {
+    background: #141414;
+    border: 1px solid #222;
+    border-radius: 6px;
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+
+  .restaurant-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.15s;
+  }
+  .restaurant-header:hover { background: #1a1a1a; }
+
+  .restaurant-name { font-size: 15px; color: #e8e8e8; font-weight: bold; flex: 1; }
+
+  .badge { font-size: 10px; padding: 2px 7px; border-radius: 3px; font-weight: normal; }
+  .badge-delivery    { background: #1e3329; color: #7ec8a0; border: 1px solid #2a4a38; }
+  .badge-no-delivery { background: #1a1a1a; color: #555;    border: 1px solid #2a2a2a; }
+  .badge-count       { background: #1a1a2e; color: #6a9fd8; border: 1px solid #2a3a5e; }
+  .badge-price       { background: #1e2a1e; color: #7ec8a0; border: 1px solid #2a3a2a; font-size: 11px; }
+
+  .restaurant-address { font-size: 11px; color: #555; flex: 1; text-align: right; }
+
+  .chevron { color: #444; font-size: 12px; transition: transform 0.2s; }
+  .restaurant.open .chevron { transform: rotate(90deg); }
+
+  .restaurant-body { display: none; padding: 0 16px 16px; border-top: 1px solid #1e1e1e; }
+  .restaurant.open .restaurant-body { display: block; }
+
+  .restaurant-meta {
+    font-size: 11px;
+    color: #555;
+    padding: 10px 0;
+    border-bottom: 1px solid #1a1a1a;
+    margin-bottom: 12px;
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .restaurant-meta a { color: #6a9fd8; text-decoration: none; }
+  .restaurant-meta a:hover { text-decoration: underline; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th {
+    text-align: left;
+    padding: 5px 8px;
+    color: #555;
+    font-weight: normal;
+    border-bottom: 1px solid #1e1e1e;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  td { padding: 6px 8px; border-bottom: 1px solid #181818; vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #1a1a1a; }
+
+  /* name cell holds name + optional description beneath */
+  .name-cell { display: flex; flex-direction: column; gap: 3px; }
+  .item-name { color: #d4d4d4; }
+  .item-name.missing { color: #c0392b; font-style: italic; }
+  .item-desc { color: #555; font-size: 11px; font-style: italic; line-height: 1.4; }
+
+  .type-badge { font-size: 10px; padding: 1px 6px; border-radius: 3px; white-space: nowrap; }
+  .type-soup    { background: #1e2a3a; color: #6ab0d8; border: 1px solid #2a4060; }
+  .type-main    { background: #1e1e1e; color: #888;    border: 1px solid #2a2a2a; }
+  .type-dessert { background: #2a1e2a; color: #c88ad8; border: 1px solid #4a2a5a; }
+
+  .price    { color: #7ec8a0; white-space: nowrap; }
+  .price.missing { color: #555; font-style: italic; }
+  .weight   { color: #888; white-space: nowrap; }
+  .weight.missing { color: #2a2a2a; }
+  .allergens { color: #a0a0a0; font-size: 11px; }
+  .allergens.missing { color: #2a2a2a; }
+
+  /* allergen pill */
+  .allergen-pill {
+    display: inline-block;
+    background: #1e1e2e;
+    border: 1px solid #2a2a4a;
+    color: #8888cc;
+    font-size: 10px;
+    padding: 0px 4px;
+    border-radius: 3px;
+    margin: 1px;
+  }
+
+  .raw-toggle {
+    font-size: 10px;
+    color: #444;
+    cursor: pointer;
+    padding: 2px 6px;
+    border: 1px solid #2a2a2a;
+    border-radius: 3px;
+    background: none;
+    font-family: inherit;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .raw-toggle:hover { color: #888; border-color: #444; }
+
+  .raw-row td {
+    background: #0a0a0a;
+    color: #555;
+    font-size: 11px;
+    padding: 4px 8px 8px;
+    border-bottom: 1px solid #1a1a1a;
+  }
+
+  #no-results { text-align: center; color: #444; padding: 60px; font-size: 14px; }
+
+  .error-highlight td { background: #1a0a0a !important; }
+  .error-highlight .item-name { color: #c0392b; }
+
+  #expand-all {
+    background: none;
+    border: 1px solid #333;
+    color: #666;
+    padding: 5px 12px;
+    font-family: inherit;
+    font-size: 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  #expand-all:hover { border-color: #555; color: #999; }
+
+  /* allergen legend */
+  #legend-toggle {
+    background: none; border: 1px solid #333; color: #666;
+    padding: 5px 12px; font-family: inherit; font-size: 12px;
+    border-radius: 4px; cursor: pointer; transition: all 0.15s;
+  }
+  #legend-toggle:hover { border-color: #555; color: #999; }
+  #legend {
+    display: none;
+    background: #111;
+    border: 1px solid #222;
+    border-radius: 6px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    font-size: 11px;
+    color: #666;
+    columns: 3;
+    column-gap: 24px;
+  }
+  #legend.open { display: block; }
+  #legend div { padding: 2px 0; }
+  #legend span { color: #8888cc; margin-right: 6px; }
+</style>
+</head>
+<body>
+
+<div id="drop-zone">
+  <strong>Drop lv.namenu.json here</strong><br>
+  <span>or click to browse</span>
+  <input type="file" id="file-input" accept=".json" style="display:none">
+</div>
+
+<div id="app" style="display:none">
+  <div id="meta"></div>
+  <div id="stats-bar"></div>
+  <div id="toolbar">
+    <input type="text" id="search" placeholder="Search restaurant or dish…">
+    <button class="filter-btn active" data-type="all">All</button>
+    <button class="filter-btn" data-type="soup">🍲 Soups</button>
+    <button class="filter-btn" data-type="main">🍽 Mains</button>
+    <button class="filter-btn" data-type="dessert">🍮 Desserts</button>
+    <button class="filter-btn" data-type="missing-price">⚠ No price</button>
+    <button class="filter-btn" data-type="missing-name">⚠ No name</button>
+    <button class="filter-btn" data-type="delivery">🛵 Delivery</button>
+    <button id="expand-all">Expand all</button>
+    <button id="legend-toggle">Allergen legend</button>
+  </div>
+  <div id="legend">
+    <div><span>1</span>Gluten (cereals)</div>
+    <div><span>2</span>Crustaceans</div>
+    <div><span>3</span>Eggs</div>
+    <div><span>4</span>Fish</div>
+    <div><span>5</span>Peanuts</div>
+    <div><span>6</span>Soy</div>
+    <div><span>7</span>Milk / lactose</div>
+    <div><span>8</span>Nuts (tree nuts)</div>
+    <div><span>9</span>Celery</div>
+    <div><span>10</span>Mustard</div>
+    <div><span>11</span>Sesame</div>
+    <div><span>12</span>Sulphur dioxide / sulphites</div>
+    <div><span>13</span>Lupin</div>
+    <div><span>14</span>Molluscs</div>
+  </div>
+  <div id="restaurants"></div>
+  <div id="no-results" style="display:none">No results found.</div>
+</div>
+
+<script>
+let data = null;
+let activeFilter = 'all';
+let expandedAll = false;
+
+const ALLERGEN_NAMES = {
+  1:'Gluten', 2:'Crustaceans', 3:'Eggs', 4:'Fish', 5:'Peanuts',
+  6:'Soy', 7:'Milk', 8:'Nuts', 9:'Celery', 10:'Mustard',
+  11:'Sesame', 12:'Sulphites', 13:'Lupin', 14:'Molluscs'
+};
+
+// ── file loading ──────────────────────────────────────────────────────────────
+
+const dropZone = document.getElementById('drop-zone');
+const fileInput = document.getElementById('file-input');
+
+dropZone.addEventListener('click', () => fileInput.click());
+fileInput.addEventListener('change', e => loadFile(e.target.files[0]));
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag-over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('drag-over');
+  loadFile(e.dataTransfer.files[0]);
+});
+
+function loadFile(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      data = JSON.parse(e.target.result);
+      dropZone.style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+      render();
+    } catch(err) { alert('Invalid JSON: ' + err.message); }
+  };
+  reader.readAsText(file);
+}
+
+// ── rendering ─────────────────────────────────────────────────────────────────
+
+function render() {
+  const search = document.getElementById('search').value.toLowerCase();
+
+  document.getElementById('meta').innerHTML =
+    `Source: <span>${data.source}</span> &nbsp;|&nbsp; ` +
+    `Scraped: <span>${data.scraped_at}</span> &nbsp;|&nbsp; ` +
+    `Day: <span>${data.day}</span>`;
+
+  let totalItems=0, totalSoups=0, totalMains=0, totalDesserts=0, missingPrice=0, missingName=0, withDesc=0;
+  for (const r of data.restaurants) {
+    for (const m of r.menu) {
+      totalItems++;
+      if (m.type==='soup')    totalSoups++;
+      if (m.type==='main')    totalMains++;
+      if (m.type==='dessert') totalDesserts++;
+      if (!m.price_eur)       missingPrice++;
+      if (!m.name || m.name.length < 3) missingName++;
+      if (m.description)      withDesc++;
+    }
+  }
+
+  document.getElementById('stats-bar').innerHTML = [
+    ['Restaurants', data.restaurant_count],
+    ['Menu items',  totalItems],
+    ['Soups',       totalSoups],
+    ['Mains',       totalMains],
+    ['Desserts',    totalDesserts],
+    ['With desc',   withDesc],
+    ['⚠ No price',  missingPrice],
+    ['⚠ No name',   missingName],
+  ].map(([label, val]) => `<div class="stat"><strong>${val}</strong>${label}</div>`).join('');
+
+  const container = document.getElementById('restaurants');
+  container.innerHTML = '';
+  let visibleCount = 0;
+
+  for (const r of data.restaurants) {
+    if (activeFilter === 'delivery' && !r.delivery) continue;
+
+    let items = r.menu;
+    if (activeFilter === 'soup')          items = items.filter(m => m.type === 'soup');
+    if (activeFilter === 'main')          items = items.filter(m => m.type === 'main');
+    if (activeFilter === 'dessert')       items = items.filter(m => m.type === 'dessert');
+    if (activeFilter === 'missing-price') items = items.filter(m => !m.price_eur);
+    if (activeFilter === 'missing-name')  items = items.filter(m => !m.name || m.name.length < 3);
+
+    if (search) {
+      const nameMatch = r.name.toLowerCase().includes(search);
+      if (!nameMatch) {
+        items = items.filter(m =>
+          (m.name || '').toLowerCase().includes(search) ||
+          (m.description || '').toLowerCase().includes(search) ||
+          (m.raw || '').toLowerCase().includes(search)
+        );
+      }
+      if (!nameMatch && items.length === 0) continue;
+    }
+
+    if (activeFilter !== 'all' && activeFilter !== 'delivery' && items.length === 0) continue;
+
+    visibleCount++;
+    container.appendChild(buildRestaurant(r, items));
+  }
+
+  document.getElementById('no-results').style.display = visibleCount === 0 ? 'block' : 'none';
+}
+
+function buildRestaurant(r, items) {
+  const div = document.createElement('div');
+  div.className = 'restaurant' + (expandedAll ? ' open' : '');
+
+  const deliveryBadge = r.delivery
+    ? `<span class="badge badge-delivery">🛵 delivery</span>`
+    : `<span class="badge badge-no-delivery">no delivery</span>`;
+
+  const menuPriceBadge = r.menu_price
+    ? `<span class="badge badge-price">from ${r.menu_price.toFixed(2)} €</span>`
+    : '';
+
+  div.innerHTML = `
+    <div class="restaurant-header">
+      <span class="chevron">▶</span>
+      <span class="restaurant-name">${r.name}</span>
+      ${deliveryBadge}
+      ${menuPriceBadge}
+      <span class="badge badge-count">${r.menu.length} items</span>
+      <span class="restaurant-address">${r.address || ''}</span>
+    </div>
+    <div class="restaurant-body">
+      <div class="restaurant-meta">
+        ${r.phone ? `📞 ${r.phone}` : ''}
+        ${r.url ? `<a href="${r.url}" target="_blank">↗ profile</a>` : ''}
+        ${r.info ? `<span style="color:#444">${r.info}</span>` : ''}
+      </div>
+      ${buildTable(items)}
+    </div>`;
+
+  div.querySelector('.restaurant-header').addEventListener('click', () => div.classList.toggle('open'));
+  return div;
+}
+
+function buildTable(items) {
+  if (!items.length) return '<p style="color:#444;font-size:12px;padding:8px 0">No items match filter.</p>';
+
+  const rows = items.map(m => {
+    const nameMissing  = !m.name || m.name.length < 3;
+    const priceMissing = !m.price_eur;
+    const isError = nameMissing;
+
+    // allergen pills with tooltip
+    const allergenHtml = m.allergens?.length
+      ? m.allergens.map(n =>
+          `<span class="allergen-pill" title="${ALLERGEN_NAMES[n] || ''}">${n}</span>`
+        ).join('')
+      : '<span style="color:#2a2a2a">—</span>';
+
+    // description shown below the name
+    const descHtml = m.description
+      ? `<span class="item-desc">${escapeHtml(m.description)}</span>`
+      : '';
+
+    return `<tr class="${isError ? 'error-highlight' : ''}">
+      <td><span class="type-badge type-${m.type}">${m.type}</span></td>
+      <td>
+        <div class="name-cell">
+          <span class="item-name ${nameMissing ? 'missing' : ''}">${escapeHtml(m.name || '(empty)')}</span>
+          ${descHtml}
+        </div>
+      </td>
+      <td class="weight ${!m.weight ? 'missing' : ''}">${m.weight || '—'}</td>
+      <td class="price ${priceMissing ? 'missing' : ''}">${m.price_eur != null ? m.price_eur.toFixed(2) + ' €' : '—'}</td>
+      <td class="allergens">${allergenHtml}</td>
+      <td><button class="raw-toggle" onclick="toggleRaw(this)">raw</button></td>
+    </tr>
+    <tr class="raw-row" style="display:none">
+      <td colspan="6">${escapeHtml(m.raw || '')}</td>
+    </tr>`;
+  }).join('');
+
+  return `<table>
+    <thead><tr>
+      <th>Type</th><th>Name / Description</th><th>Weight</th><th>Price</th><th>Allergens</th><th></th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+}
+
+function toggleRaw(btn) {
+  const rawRow = btn.closest('tr').nextElementSibling;
+  const visible = rawRow.style.display !== 'none';
+  rawRow.style.display = visible ? 'none' : 'table-row';
+  btn.textContent = visible ? 'raw' : 'hide';
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── controls ──────────────────────────────────────────────────────────────────
+
+document.getElementById('search').addEventListener('input', render);
+
+document.querySelectorAll('.filter-btn[data-type]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn[data-type]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeFilter = btn.dataset.type;
+    render();
+  });
+});
+
+document.getElementById('expand-all').addEventListener('click', () => {
+  expandedAll = !expandedAll;
+  document.querySelectorAll('.restaurant').forEach(r => r.classList.toggle('open', expandedAll));
+  document.getElementById('expand-all').textContent = expandedAll ? 'Collapse all' : 'Expand all';
+});
+
+document.getElementById('legend-toggle').addEventListener('click', () => {
+  document.getElementById('legend').classList.toggle('open');
+});
+</script>
+</body>
+</html>

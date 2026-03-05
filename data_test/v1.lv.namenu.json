@@ -1,0 +1,486 @@
+{
+  "source": "https://lv.namenu.sk/",
+  "scraped_at": "2026-03-05T08:19:07.665107",
+  "day": "Štvrtok 05.03.",
+  "restaurant_count": 29,
+  "restaurants": [
+    {
+      "name": "33 Pizza",
+      "url": "https://lv.namenu.sk/pizza_33/",
+      "address": "P.O. Hviezdoslava 33, 934 01 Levice",
+      "phone": "0918 610 858",
+      "delivery": true,
+      "info": "Polievka + hlavné jedlo | Rozvoz od 10:00 do 14:00",
+      "menu": [
+        "Polievka: Kyslá šošovicová s krutónmi | Alergény: 1,3,7",
+        "1: 600 g Štangle so slaninou a zapečenou mozzarelou - 7,00 EUR | Alergény: 1,7",
+        "2: 400g Spätzle s kuracím mäsom a šampiňónovou omáčkou - 8,50 EUR | Alergény: 1,3,7",
+        "3: 350 g Fire Starter Smash Burger - 8,50 EUR | Alergény: 1,3,7",
+        "4: 450 g Falafel a Humus Bowl - 8,50 EUR | Alergény: 6,7",
+        "5: 400 g Šalát s avokádom a grilovaným tofu - 8,00 EUR | Alergény: 1,7",
+        "6: 350 g Kuracia quesadilla so slaninou - 8,50 EUR | Alergény: 1,7",
+        "7: 550 g Pork Poutine - 8,50 EUR | Alergény: 1,3,7",
+        "8: 550 g Bravčové Líčka na červenom víne so zemiakovou knedľou - 9,00 EUR | Alergény: 7",
+        "9: 300 g Lievance s tvarohom a hrozienkami a orechami poliate medom - 7,00 EUR | Alergény: 1,3,7,8"
+      ]
+    },
+    {
+      "name": "Atóm – Restaurant il Caffe",
+      "url": "http://lv.namenu.sk/restaurant_il_caffe/",
+      "address": "Sv. Michala 4, 93401 Levice",
+      "phone": "0915 620 111",
+      "delivery": true,
+      "info": "Menu od 6,80 EUR",
+      "menu": [
+        "Polievka: Fazuľová sladká (9,12)",
+        "Polievka: Slepačí vývar s domácou cestovinou (1,3,9)",
+        "MENU A: 120g Plnený bravčový rezeň v cestíčku (klobása, feferóny), ½ americké zemiaky, ½ ryža, šalát (1,3,12)",
+        "MENU B: 240g Pečené kuracie stehno Cacciatore so zemiakovou kašou a mix šalát - 7,00 EUR (7,12)",
+        "MENU C: 120g Bravčové výpečky, domáca kysnutá knedľa, dusená kapusta (1)",
+        "MENU D: 300g Kuracie rizoto posypané syrom, cvikla (7,12)",
+        "MENU E: 300g Domáce buchty na pare plnené slivkovým lekvárom a s kakaovou posýpkou (1,3,7,12)",
+        "MENU F: 300g Miešaný listový šalát s burrattou, paradajkami, olivami a zálievka, pečivo - 8,00 EUR (1,7,12)",
+        "BIZNIS MENU: 200g Pečený losos na bylinkovej omáčke s pečenými baby zemiakmi, mix šalát - 10,00 EUR (4,12)"
+      ]
+    },
+    {
+      "name": "Baran Restaurant",
+      "url": "http://lv.namenu.sk/baran_restaurant/",
+      "address": "Ľ. Štúra 47, Levice",
+      "phone": "036 633 2413",
+      "delivery": true,
+      "info": "Polievka + hlavné jedlo | cena komplet menu od 7,00 EUR",
+      "menu": [
+        "Polievka: Hrášková s mrveničkou (1)",
+        "1. 120g Vyprážaný kurací rezeň v chrumkavej panko strúhanke, 200g opekané zemiaky, americký kapustový šalát (1,7)",
+        "2. 120g Varené hovädzie s chrenovou omáčkou, 160g knedľa - 7,50 EUR (1,7)",
+        "3. 300g Gnocchi so syrovou omáčkou, bazalkou a kuracími prsiami (1,7)",
+        "4. 300g Miešaný šalát s pikantnými kuracími filetkami (1,7)",
+        "5. 500g Pizza na želanie (tomato, syr, šunka + jedna príloha) - 7,50 EUR (1,7)"
+      ]
+    },
+    {
+      "name": "Bistro Chef Geurud (Veľký Ďur)",
+      "url": "http://lv.namenu.sk/geurud/",
+      "address": "Levická 520/64, 935 34 Veľký Ďur",
+      "phone": "0910 441 511",
+      "delivery": true,
+      "info": "Polievka + hlavné jedlo",
+      "menu": [
+        "Polievka: 0,33 l Slepačí vývar s mäsom, zeleninou a rezancami (1,3,7)",
+        "1. 150/200/30g Vyprážané kuracie prsia v šunkovom cestíčku, varené zemiaky, mango čili majonéza - 7,50 EUR (1,3,7)",
+        "2. 150/200g Bravčový plátok s horčicovo medovou omáčkou, ryža - 7,50 EUR (1,3,7,10)",
+        "3. 300g Špenátové halušky so syrovou omáčkou a cherry paradajkami - 7,50 EUR (1,3,7)",
+        "4. 130/200g Grilovaný tuniak v sézame, grilovaná pak choi, mrkvovo paštrnákové pyré, teriyaki omáčka - 10,50 EUR (1,3,4,6,7,11)",
+        "5. 150/200/30g Vyprážaný bravčový rezeň, pečené baby zemiaky, tatárska omáčka - 7,50 EUR (1,3,7)",
+        "6. 300g Ľadový šalát s tuniakom, vareným vajíčkom, olivami, cherry paradajkami, majonézový dip, toast - 7,60 EUR (1,3,4,7)"
+      ]
+    },
+    {
+      "name": "Bistro Miloš – OC Dituria",
+      "url": "http://lv.namenu.sk/bistro_milos/",
+      "address": "OC Dituria, Sv. Michala 5 – 2. podlažie, Levice",
+      "phone": "0911 038 288",
+      "delivery": true,
+      "info": "Polievka + hlavné jedlo | cena od 4,00 EUR",
+      "menu": [
+        "Polievka: 0,33l Kapustnica (1)",
+        "Polievka: 0,33l Šošovicová so zeleninou (1)",
+        "A: 100/80/160gr. Pečená hovädzia roštenka, dusená červená kapusta, knedľa (1)",
+        "B: 150/200gr. Bravčové čevabčiči, varené zemiaky, cibuľa, horčica (1,3,10)",
+        "C: 120/200gr. Vypr. kurací rezeň v cestíčku, opekané zemiaky, uhorka (1,3,7)",
+        "D: 350gr. Orechové pečené rožky 4-kusy (1,3,7,8)",
+        "E: 120/200gr. Grilovaný encián, brusnicový DIP, varené zemiaky (7)"
+      ]
+    },
+    {
+      "name": "Bistro Sunshine",
+      "url": "http://lv.namenu.sk/sunshine/",
+      "address": "Červenej armády 28, Levice",
+      "phone": "0915 092 404",
+      "delivery": true,
+      "info": "Polievka 2,50 EUR | Hlavné jedlo 1-2: 6,00 EUR | Sladké: 3,00 EUR | Jedlo č.4: 5,50 EUR",
+      "menu": [
+        "P: Talianska paradajková polievka",
+        "1: Špaldová knedla s výpečkami a dusenou červenou kapustou (A: 1, 6)",
+        "2: Krémové šošovicové Marry me s kúskami pečených batátov a ryžou",
+        "3: Malinový chia koláč (A: 8)",
+        "4: Super power bowl so smotanovým dresingom (A: 6, 11)"
+      ]
+    },
+    {
+      "name": "Central Gastro",
+      "url": "http://lv.namenu.sk/central_gastro/",
+      "address": "Kpt. Nálepku 3163/137, Levice",
+      "phone": "0903 79 79 87",
+      "delivery": false,
+      "info": "Polievka + hlavné jedlo | 6,65 EUR (hlavné jedlo 5,90 EUR + polievka 0,75 EUR)",
+      "menu": [
+        "A: 0,33 l Slepačí vývar s rezancami (1,3,9)",
+        "B: 0,33 l Mexická fazuľová s klobásou (1)",
+        "1. 150/200/100 g Mletý rezeň so syrom, zemiaková kaša, uhorkový šalát (1,3,7)",
+        "2. 120/200 g Bravčové plece na smotane s dubákmi, halušky (1,3,7)",
+        "3. 400g Čínske rezance so zeleninou, kuracie mäso (1,3,6)",
+        "4. 120/200g Kuracie prsia s horčicovo-smotanovou omáčkou, ryža (1,7,10)",
+        "5. 120/160g Plnená paprika, domáca knedľa (1,3,7)",
+        "6. 400g Poke bowl s kuracím mäsom / ryža, čerstvý špenát, mrkva, edamame, sézam, teriyaki, rajčiny, avokádo (11)",
+        "CELÁ PEČENÁ KAČICA, dusená kapusta, domáca knedľa - 10,90 EUR"
+      ]
+    },
+    {
+      "name": "Fit Food",
+      "url": "http://lv.namenu.sk/fit_food/",
+      "address": "Kálnická cesta 8, 934 01 Levice",
+      "phone": "0915 289 893",
+      "delivery": true,
+      "info": "Menu 1-3: 6,99 EUR | Menu 4: 8,49 EUR",
+      "menu": [
+        "Polievka: Zeleninová polievka (1,9)",
+        "1. Kung pao s dusenou ryžou - 450kcal | B:41g T:9g S:49g (1,5)",
+        "2. Kurací cestovinový šalát - 540kcal | B:41g T:15g S:44g (1,3,7)",
+        "3. Cviklové palacinky so syrovým krémom - 467kcal | B:40g T:11g S:48g (1,3,7)",
+        "4. Grilovaná bravčová panenka v parmezánovej kruste s opekanými zemiakmi a grilovanými cherry paradajkami - 500kcal | B:42g T:12g S:42g (7)"
+      ]
+    },
+    {
+      "name": "FRESCO by Patriot Gastronomy",
+      "url": "http://lv.namenu.sk/frescobypatriotgastronomy/",
+      "address": "Holubyho 2, 934 01 Levice",
+      "phone": "",
+      "delivery": false,
+      "info": "Polievky + hlavné jedlá + dezerty",
+      "menu": [
+        "0,20l Petržlenový krém, pražená cibuľa, kučeravý petržlen - 2,90 EUR (7,9)",
+        "120g Teľacie mäso z krížnej kosti, restované fazuľové struky, zemiaky z pahreby, omáčka Jack Daniels - 9,90 EUR (7,9,10,12)",
+        "280g Mozzarella di bufala, cestoviny fettuccine, zeleninové hobliny, olivy kalamata, muškátový orech, žĺtok - 9,90 EUR (1,3,7,9)",
+        "300g Fritované rybie guličky, paradajkovo-papriková omáčka, kus-kus, jogurtový uhorkový šalát s kôprom - 9,90 EUR (1,3,4,7,9)"
+      ]
+    },
+    {
+      "name": "Golden Eagle (Restaurant La Lavande)",
+      "url": "http://lv.namenu.sk/restaurant_la_lavande/",
+      "address": "Nám. hrdinov 12 (Hotel Golden Eagle), Levice",
+      "phone": "",
+      "delivery": false,
+      "info": "Polievka + hlavné jedlo",
+      "menu": [
+        "0,25l Gulášová so zemiakmi - 2,00 EUR",
+        "Wagyu rump steak, pečené baby zemiaky s hľuzovkovou majonézou, baby brokolica, mrkvové pyré, demi glace - 49,00 EUR (7)",
+        "Kačacie prsia, zemiakovo-bryndzové pyré, špik, kučeravý kel na masle, granny smith jablko, demi glace - 21,50 EUR (7)",
+        "Líčka zo zubáča, curry, kokosové mlieko, mandle, koriander, jazmínová ryža - 17,50 EUR (4,8)",
+        "150 g A: Bravčové líčka na hubách, restovaný špenát, smotanové gnocchi s konfitovaným cesnakom - 10,90 EUR (1,3,7)",
+        "150 g B: Kačica, hoisin omáčka, judášovo ucho, zelenina, udon rezance - 10,90 EUR (1,6)",
+        "400 g C: Fliačky s hlávkovou kapustou, pažítka, píniové orechy - 9,90 EUR (1,3,7,8)"
+      ]
+    },
+    {
+      "name": "Gourmet",
+      "url": "http://lv.namenu.sk/gourmet/",
+      "address": "Kpt. Nálepku 62, Levice",
+      "phone": "0911 109 309",
+      "delivery": true,
+      "info": "Polievka + hlavné jedlo | cena menu s polievkou od 7,30 EUR - 7,90 EUR vrátane balného a dovozu",
+      "menu": [
+        "Polievka: 0,33 l Fazuľová kyslá (1,7)",
+        "A: 140/200/100 g Černohorský bravčový rezeň, varené zemiaky s vňaťkou, šalát - 7,30 EUR (1,3,7)",
+        "B: 150/200 g Vyprážané rybie filé, zemiakový šalát - 7,90 EUR (1,3,4,7)",
+        "C: 130/200 g Kuracia Čína podávaná s ryžou - 7,30 EUR (1,6)",
+        "D: 300 g Cviklové rizoto a kuracia plnená roláda (šunka, feta, sušená paradajka), parmezán - 7,30 EUR (7)",
+        "E: 350 g Poke bowl (losos) - 7,90 EUR (4,6,11)",
+        "F: 1 ks Palacinka (nutella alebo džem) - 1,90 EUR bez polievky (1,3,7)"
+      ]
+    },
+    {
+      "name": "Gracia restaurant Junior",
+      "url": "http://lv.namenu.sk/restaurant_gracia/",
+      "address": "Ul. Sládkovičova 2, Levice",
+      "phone": "0910 940 535",
+      "delivery": true,
+      "info": "Polievka + hlavné jedlo + nápoj + šalát | 7,00 EUR s dovozom",
+      "menu": [
+        "Polievka: 0,33 l Kapustová polievka (1,7)",
+        "1: 200g Pečené údené koleno na pive, obloha, chlieb (1,10)",
+        "2: 120g/200g Hortobádska hovädzia pečienka, slovenská ryža (1,3)",
+        "3: 300g Cestovinový šalát Curry pene z kuracích prs (1,3,7)",
+        "4: 200g/100g Zapekaný karfiol, ½ porcie varené zemiaky, šalát (3,7)"
+      ]
+    },
+    {
+      "name": "Hotel Lev",
+      "url": "https://lv.namenu.sk/hotel_lev/",
+      "address": "Ul. Čsl. Armády č. 2, 934 01 Levice",
+      "phone": "036 / 3700 300",
+      "delivery": false,
+      "info": "Polievka + hlavné jedlo + džbán vody s citrónom",
+      "menu": [
+        "0,25 l Držková polievka - 2,30 EUR (1,7,9)",
+        "0,30 l Vývar z farmársky kurčiat s cestovinou, mäsom a zeleninou - 2,30 EUR (1,9)",
+        "120 g Sous-vide bravčová panenka, smotanový kel so slaninou, hassellback zemiakom - 8,90 EUR (1,7,9)",
+        "150 g Zapekané francúzske kuracie prsia s kyslou smotanou, syrom a dusenou ryžou - 7,20 EUR (1,7)",
+        "150 g Pečená bravčová krkovička s dusenou kapustou a kysnutou knedľou - 6,90 EUR (1,3,7)",
+        "300 g Šošovicový prívarok s domácimi zeleninovými fašírkami a chlebíkom - 6,90 EUR (1,7,9,12)",
+        "300 g Vyprážaný syr s hranolkami a tatárskou omáčkou - 6,90 EUR (1,3,6,7,11)",
+        "150 g Listový šalát so cherry paradajkami, uhorkou a mrkvou - 3,50 EUR"
+      ]
+    },
+    {
+      "name": "Menučkáreň",
+      "url": "https://lv.namenu.sk/menuckaren/",
+      "address": "Ku Bratke 1/A, 934 01 Levice",
+      "phone": "0919 267 571",
+      "delivery": true,
+      "info": "Polievka + hlavné jedlo + dezert | menu od 7,00 EUR",
+      "menu": [
+        "Polievka: Slepačí vývar (1,9)",
+        "Polievka: Hŕstková s krúpami (1)",
+        "A: 120g/200g Bravčové karé v pikantnej omáčke, pečené zemiaky - 7,00 EUR (1)",
+        "B: 120g/150g Zapekaný kurací plátok (syr, šunka, kukurica), ryža, šalát - 7,00 EUR (1,7)",
+        "C: 120g/200g Vyprážaný br. mletý rezeň, zemiaková kaša, kyslá uhorka - 7,00 EUR (1,3,7)",
+        "D: 350g Špenátové halušky, nivová omáčka - 7,00 EUR (1,3,7)"
+      ]
+    },
+    {
+      "name": "Meštiansky dvor",
+      "url": "https://lv.namenu.sk/mestiansky_dvor/",
+      "address": "Námestie hrdinov 7/8, Levice",
+      "phone": "0917 049 940",
+      "delivery": true,
+      "info": "Polievka + hlavné jedlo | A-D: 7,00 EUR, E: 8,50 EUR",
+      "menu": [
+        "P1: 0,33l Bravčový vývar s cestovinou (1,3,9)",
+        "P2: 0,33l Frankfurtská s párkom - chlieb (1)",
+        "A: 150g/200g/120g Pácovaný kurací rezeň (syr,smotana,cesnak) v trojobale, zemiaková kaša, mrkvový šalát s jablkami (1,3,7)",
+        "B: 150g/200g/70g Bravčový perkelt s kolienkami, kyslá uhorka (1,3)",
+        "C: 350g Parené buchty s lekvárom, kakaová posýpka, maslo (1,3,7)",
+        "D: 150g/200g/70g Pečené bravčové rebrá, americké zemiaky, baranie rohy",
+        "E: 200g/200g/120g Kačacie stehno sous-vide, dusená červená kapusta, domáca lokša - 8,50 EUR (1)"
+      ]
+    },
+    {
+      "name": "Penzión For You",
+      "url": "http://lv.namenu.sk/penzion_for_you/",
+      "address": "Ludanská cesta 14, Levice",
+      "phone": "0911 045 696",
+      "delivery": false,
+      "info": "Polievka + hlavné jedlo + minerálka",
+      "menu": [
+        "0,33l Slepačí vývar - 1,25 EUR (1,9)",
+        "A: 300g Hubové krémové rizoto s kuracími rezančekmi - 6,30 EUR (1,3,7)",
+        "B: 130/150/50g Bravčový rezeň, opekané zemiaky, čalamáda - 6,90 EUR (1,3,7)",
+        "C: 130/50/150g Morčacie prsia so syrovou omáčkou a ryžou - 7,20 EUR (3,7)",
+        "D: 150/150/50g Makové šúlance so slivkovým džemom a práškovým cukrom - 6,60 EUR (1,3,7,10)"
+      ]
+    },
+    {
+      "name": "Pivovarská reštaurácia",
+      "url": "http://lv.namenu.sk/pivovarska_restauracia/",
+      "address": "SNP 13, Levice",
+      "phone": "+421 366315346",
+      "delivery": false,
+      "info": "Polievka + hlavné jedlo | 6,80 – 7,80 EUR",
+      "menu": [
+        "1: 0,5l Hovädzí vývar (1,3,9)",
+        "2: 0,5l Zemiaková kyslá, chlieb (1,3,7)",
+        "A: 150g/200g Mletý rezeň so syrom, zemiaková kaša, šalát (1,3,7)",
+        "B: 150g/200g Kurací stroganov, dusená ryža, šalát (1,7)",
+        "C: 350g Lasagne s mletým mäsom a zeleninou (1,3,7)",
+        "D: 350g Špenátové halušky s nivovou omáčkou (1,3,7)",
+        "X: 150g/200g Vyprážaný rezeň/syr + príloha, domáca tatárska omáčka (1,3,7)"
+      ]
+    },
+    {
+      "name": "Pizzéria Fontána u Cuca",
+      "url": "http://lv.namenu.sk/pizzeria_fontana/",
+      "address": "Ul. Červenej Armády 7, Levice",
+      "phone": "0911 403 309",
+      "delivery": true,
+      "info": "Polievka + hlavné jedlo | 6,80 - 8,00 EUR",
+      "menu": [
+        "Polievka: 0,25 l Kuracia s fliačkami (1,3,9)",
+        "Polievka: 0,25 l Zeleninová s pečeňovými haluškami (1,7)",
+        "Menu 1: 120g/200g Plnený kurací rezeň v panko strúhanke (niva, šunka, kápia), zemiaková kaša, šalát - 7,30 EUR (1,3,7)",
+        "Menu 2: 120g/160g Dolniacka bravčová pochúťka, ryža, kapustový šalát - 7,30 EUR (1)",
+        "Menu 3: 120g/150g Hovädzia roštenka na šampiňónoch, tarhoňa, cvikla - 8,00 EUR (1)",
+        "Menu 4: 250g Domáci ryžový nákyp s ovocím a so snehovou penou, ovocná poleva - 7,30 EUR (1,3,7)",
+        "Menu 5: 120g/200g Vyprážaná plnená palacinka, var. zemiaky, domáca tatárska omáčka - 7,30 EUR (1,3,7)",
+        "Menu 6: 360g / 26cm Pizza (syr, šunka + 2 ingrediencie podľa vlastného výberu) - 7,00 EUR (1,3,7)"
+      ]
+    },
+    {
+      "name": "Polievkári",
+      "url": "http://lv.namenu.sk/polievkari/",
+      "address": "Ľ. Štúra 21/C, Levice",
+      "phone": "0950 573 513",
+      "delivery": true,
+      "info": "Polievky (* objem porcie: 400ml / 300ml)",
+      "menu": [
+        "1. Kurací vývar s mäsom, zeleninou a niťovkami - 3,90 EUR / 3,50 EUR (1,3)",
+        "2. Babičkina zemiaková so sušenými hubami a zeleninou (VEGAN) - 4,10 EUR / 3,70 EUR (9)",
+        "3. Talianska paradajková so syrom a bazalkovým pestom - 4,10 EUR / 3,70 EUR (7)",
+        "4. Domáca kapustnica s mäsom, údeným a klobásou - 4,30 EUR / 3,90 EUR",
+        "DOMÁCA HUSPENINA - 5,50 EUR / ks"
+      ]
+    },
+    {
+      "name": "Reštaurácia Krivín (Rybník)",
+      "url": "http://lv.namenu.sk/krivin/",
+      "address": "Hlavná 280/10, 935 23 Rybník",
+      "phone": "0948 860 061",
+      "delivery": true,
+      "info": "Polievka + hlavné jedlo + voda | 7,00 EUR + balné 0,30 EUR",
+      "menu": [
+        "Polievka: 0,33L Fazuľová kyslá, chlieb (1,3,7)",
+        "1. 150g/200g Vyprážaný kurací rezeň v syrovo-cesnakovom cestíčku, zemiaková kaša, šalát (1,3,7)",
+        "2. 150g/200g Marinovaný bravčový plátok s volským okom, ryža, šalát (3)",
+        "3. 380g Tiramisu palacinky (1,3,7)",
+        "4. 200g/200g Grilované kačacie prsia, dusená červená kapusta, 2x lokše - 10,00 EUR (1,3,7)",
+        "Dezert: 1ks Palacinka plnená nutelou - 1,70 EUR / rozvoz 2,00 EUR"
+      ]
+    },
+    {
+      "name": "Reštaurácia pri SOŠ",
+      "url": "http://lv.namenu.sk/restauracia_pri_sos/",
+      "address": "Záhradná 4 (Za Penziónom Tilia), Levice",
+      "phone": "",
+      "delivery": false,
+      "info": "Polievka + hlavné jedlo + dezert + minerálka | Cena menu: 5,90 EUR",
+      "menu": [
+        "Polievka: 0,33 l Hovädzí vývar s fridatovými rezancami (1,3,9)",
+        "120/100/125/120 g Kuracie prsia s jogurtovou krustou, ½ ryža, ½ opekané zemiaky, mrkvovo-jablkový šalát (1,7)",
+        "120/200/60 g Syrovo-šunkové špízy vyprážané, zemiakové hranolky, tatárska omáčka (1,3,7)"
+      ]
+    },
+    {
+      "name": "Reštaurácia Quatro",
+      "url": "http://lv.namenu.sk/restauracia_quatro/",
+      "address": "Ľudmily Podjavorinskej 3, Levice",
+      "phone": "0907 732 192",
+      "delivery": true,
+      "info": "Polievka + hlavné jedlo | 7,00 EUR",
+      "menu": [
+        "Polievka 1: Zeleninová (1,9)",
+        "Polievka 2: Šampiónova kyslá (1,7)",
+        "A: 250g Vyprážané kuracie štvrte, zemiaková kaša, kompót (1,3,7)",
+        "B: 120g Bravčová krkovička na spôsob diviny, tarhoňa, cvikla (1)",
+        "C: 120g Hovädzí stroganov, ½ hranolky ½ ryža, uhorka - 7,50 EUR (1,3,7)",
+        "D: 200g Vyprážaná bravčová pečeň s jablkom, zemiaková kaša, cvikla (1,3,7)",
+        "E: 300g Zapekaná brokolica so syrom a smotanou, ovocie (1,3,7)"
+      ]
+    },
+    {
+      "name": "Reštaurácia Seč",
+      "url": "https://lv.namenu.sk/restauracia_sec/",
+      "address": "Hlavná 20, 935 31 Horná Seč",
+      "phone": "0919 406 965",
+      "delivery": false,
+      "info": "Polievka + hlavné jedlo + dezert | menu od 7,90 EUR + 0,20 EUR balné",
+      "menu": [
+        "Polievka: Vývar z kohúta, rezance (1,3,7,9)",
+        "Polievka: Kapustnica, chlieb (1,3,7)",
+        "A: 350 g Tekvicový prívarok, mäso na šťave, chlieb (1,3,7)",
+        "B: 350 g Bravčový rezeň v haruľovom cestíčku, opekané zemiaky, čalamáda (1,3,7)",
+        "C: 350 g Špecle s pučenými zemiakmi a oškvarkami (1,3,7)",
+        "D: 350 g Miešaný zeleninový šalát, grilovaný encián, brusnice (1,3,7)",
+        "Dezert: Šišky s lekvárom (1,3,7,12)"
+      ]
+    },
+    {
+      "name": "Reštaurácia Sitno",
+      "url": "http://lv.namenu.sk/restauracia_sitno/",
+      "address": "SNP 3 (oproti Družbe), Levice",
+      "phone": "0902 773 143",
+      "delivery": true,
+      "info": "Polievka + hlavné jedlo + šalát + nápoj",
+      "menu": [
+        "Polievka: 0,33 l Gulášová, chlieb (1) alebo Slepačí vývar s mäsom a rezancami (1,3,9)",
+        "1. 130 g Pečené kurča, dusená ryža, kompót - 7,00 EUR",
+        "2. 130 g Mletý rezeň so syrom, zemiaková kaša, kapustový šalát - 7,00 EUR (1,3,7)",
+        "3. 300 g Bryndzové pirohy so slaninkou - 7,00 EUR (1,3,7)",
+        "4. 130 g Kuracie prsia na rošte so šunkou a volským okom, ½ pečené zemiaky, ½ dusená ryža, kapustový šalát - 7,00 EUR (3)"
+      ]
+    },
+    {
+      "name": "Retro Club",
+      "url": "http://lv.namenu.sk/retro_club/",
+      "address": "Ul. A.Sládkoviča 5, Levice",
+      "phone": "0910 58 58 58",
+      "delivery": true,
+      "info": "Polievka + hlavné jedlo | 6,50 EUR (1,2,3) alebo 6,70 EUR (4,5)",
+      "menu": [
+        "Polievka: Hokaido s krutónmi (obilniny, mlieko)",
+        "1. 150g/200g Bravčový plátok Mexiko, dusená ryža (obilniny, mlieko)",
+        "2. 150g/200g Šošovicový prívarok s pečenou klobásou, chlieb (obilniny, mlieko)",
+        "3. 300g Vyprážané šampiňóny, pečené zemiaky, tatárska omáčka (obilniny, mlieko, vajce, horčica)",
+        "4. 120g/200g Grilovaný pološtiepok, hranolky, tatárska omáčka (mlieko, vajce, horčica)",
+        "5. 120g/200g Námornícky hovädzí guláš, tarhoňa, uhorka (obilniny, vajce)"
+      ]
+    },
+    {
+      "name": "Sorrento restaurant (Kalná nad Hronom)",
+      "url": "http://lv.namenu.sk/sorrento/",
+      "address": "Nitrianska cesta 498, Kalná nad Hronom",
+      "phone": "0948 37 69 29",
+      "delivery": true,
+      "info": "Polievka + hlavné jedlo + dezert + nápoj",
+      "menu": [
+        "Polievka 1: 0,33 l Slepačí vývar s mäsom, zeleninou a cestovinou (1,3)",
+        "Polievka 2: 0,33 l Cícerovo-kelová polievka s cestovinou (1,3)",
+        "A. 150g/250g Vyprážaný kurací rezeň plnený (syr,šunka,šampiňóny), šťuchané zemiaky s cibuľou a cvikla - 7,00 EUR (1,3,7)",
+        "B. 150g/200g Pečené bravčové mäso na oregane s dusenou červenou kapustou a knedľou - 7,00 EUR (1,3,7)",
+        "C. 120g/250g Grilovaný encián so zemiakmi na vňate a brusnicovým lekvárom - 7,00 EUR (1,3,7)",
+        "D. Šalátový tanier podľa vlastného výberu, dressing - 7,00 EUR",
+        "E. 400 g Cestoviny Tagliatelle s kuracími prsiami na špenáte a parmezán - 7,00 EUR (1,3,7)",
+        "F. 150g/250g Morčacie pikantné soté so slaninou a tarhoňou a uhorkový šalát - 7,20 EUR (10)",
+        "XXL. 300g/250g Pečené kačacie stehno Sous vide s dusenou červenou kapustou a domácou knedľou - 8,90 EUR (1,3,7)",
+        "Dezert: 150g Mini Lievančeky s prelivom z lesného ovocia - 2,20 EUR (1,3,7)"
+      ]
+    },
+    {
+      "name": "Stanley's pizza Levice",
+      "url": "http://lv.namenu.sk/stanleyspizzalevice/",
+      "address": "Poľná 6, 934 01 Levice",
+      "phone": "0915266366",
+      "delivery": true,
+      "info": "Hlavné jedlo | 5,50 EUR | Rozvoz v rámci Levíc ZADARMO",
+      "menu": [
+        "A. Grécky šalát + pizza štangla - 5,50 EUR",
+        "B. Šunkovo jemno pikantné cestoviny - 5,50 EUR",
+        "C. Vyprážaný kurací rezeň, hranolky, kečup - 5,50 EUR",
+        "D. Pizza Hawai - 7,00 EUR",
+        "E. VEGAN PIZZA MARGHERITA - 6,90 EUR"
+      ]
+    },
+    {
+      "name": "Tilia restaurant",
+      "url": "http://lv.namenu.sk/penzion_tilia/",
+      "address": "Záhradná 2, 934 01 Levice",
+      "phone": "036 6312 965",
+      "delivery": true,
+      "info": "Polievka + hlavné jedlo | cena menu s polievkou",
+      "menu": [
+        "Polievka: Rajčinová polievka so syrom a krutónmi (1,7) - vegánska verzia s rastlinným syrom",
+        "1. Pečená kačica s dusenou kapustou a domácou kysnutou knedľou - 8,40 EUR (1,3,7)",
+        "2. Bravčové fašírky so zemiakovou kašou a rajčinovým šalátom - 7,40 EUR (1,3,7)",
+        "3. Kurací paprikáš s krupicovými haluškami - 7,40 EUR (1,7)",
+        "4. Perky naplnené slivkovým lekvárom, s maslom a orechovou posýpkou - 7,40 EUR (1,3,7,8)",
+        "Š. Bravčový steak so šunkou a volským okom, so zemiakovými hranolčekmi - 12,40 EUR (3)",
+        "Vegán: Hlivový perkelt s ryžovými rezancami - 7,40 EUR"
+      ]
+    },
+    {
+      "name": "TriP street food & pub",
+      "url": "http://lv.namenu.sk/trip/",
+      "address": "Mlynská 2238, Levice",
+      "phone": "0903 483 693",
+      "delivery": true,
+      "info": "Polievky + hlavné jedlá",
+      "menu": [
+        "Polievka: Paradajková s písmenkami - 2,70 EUR (1,3)",
+        "1. Kuracie pečienky restované na cibuľke, dusená ryža a kyslé uhorky - 7,20 EUR (1)",
+        "2. Ragú z klokanieho stehna (šampiňóny, červené víno, koreňová zelenina), zemiakovou knedľou - 8,90 EUR (1,3,9)",
+        "3. Čerstvý zeleninový šalát s vyprážanými kalamárovými krúžkami v cestíčku, citrónovým dresingom a domácim pečivom - 7,20 EUR (1,3,7,14)",
+        "4. Pizza - Smotanový základ, mozzarella, klobása, mix olív, cibuľa - 7,60 EUR (1,7)"
+      ]
+    }
+  ]
+}
