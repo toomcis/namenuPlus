@@ -2,6 +2,9 @@
 namenu.db
 .devdbrc
 
+# random files i want gone
+old_main.py
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]

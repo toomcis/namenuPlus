@@ -1,3 +1,4 @@
+# main.py - Scraper for namenu.sk, extracting restaurant and menu data into SQLite database
 import requests
 from bs4 import BeautifulSoup
 import json
@@ -6,9 +7,23 @@ import sqlite3
 import hashlib
 import os
 from datetime import datetime, date
+import sys
+import io
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+
 
 DB_PATH = os.environ.get("NAMENU_DB", "namenu.db")
-URL     = "https://lv.namenu.sk/"
+
+CITIES = [
+    {"name": "Levice",           "slug": "levice",          "url": "https://lv.namenu.sk/"},
+    {"name": "Nové Zámky",       "slug": "nove-zamky",      "url": "https://namenu.sk/nove_zamky/"},
+    {"name": "Zlaté Moravce",    "slug": "zlate-moravce",   "url": "https://namenu.sk/zlate_moravce/"},
+    {"name": "Žarnovica",        "slug": "zarnovica",       "url": "https://namenu.sk/zarnovica/"},
+    {"name": "Zvolen",           "slug": "zvolen",          "url": "https://namenu.sk/zvolen/"},
+    {"name": "Žiar nad Hronom",  "slug": "ziar-nad-hronom", "url": "https://namenu.sk/ziar_nad_hronom/"},
+    {"name": "Banská Štiavnica", "slug": "banska-stiavnica","url": "https://namenu.sk/banska_stiavnica/"},
+]
+
 HEADERS = {"User-Agent": "namenu-scraper/1.0 (personal project)"}
 
 # ── classification ────────────────────────────────────────────────────────────
@@ -353,117 +368,144 @@ def make_slug(name):
 # ── scraper ───────────────────────────────────────────────────────────────────
 
 def scrape():
-    response = requests.get(URL, headers=HEADERS, timeout=15)
-    response.encoding = "utf-8"
-    soup = BeautifulSoup(response.text, "html.parser")
-
-    title_tag = soup.find("title")
-    day_label = title_tag.text.strip().split("|")[0].strip() if title_tag else ""
-    today     = date.today().isoformat()
-    now       = datetime.now().isoformat()
-
     conn = sqlite3.connect(DB_PATH)
     init_db(conn)
-
-    city_id = get_or_create_city(conn, "Levice", "levice", URL)
-
-    cur = conn.execute(
-        "INSERT INTO scrape_runs (city_id, scraped_at, day, date) VALUES (?, ?, ?, ?)",
-        (city_id, now, day_label, today)
-    )
-    conn.commit()
-    run_id = cur.lastrowid
-
+    today       = date.today().isoformat()
+    now         = datetime.now().isoformat()
     total_items = 0
+    last_run_id = None
 
-    for h2 in soup.find_all("h2"):
-        name_tag = h2.find("a")
-        if not name_tag:
+    for city_def in CITIES:
+        print(f"\n── {city_def['name']} ──")
+        try:
+            response = requests.get(city_def["url"], headers=HEADERS, timeout=15)
+        except Exception as e:
+            print(f"  skipped ({e})")
             continue
 
-        name = name_tag.text.strip()
-        url  = name_tag.get("href", "")
-        slug = make_slug(name)
+        response.encoding = "utf-8"
+        soup = BeautifulSoup(response.text, "html.parser")
 
-        siblings = []
-        node = h2.find_next_sibling()
-        while node and node.name != "h2":
-            siblings.append(node)
-            node = node.find_next_sibling()
+        title_tag = soup.find("title")
+        day_label = title_tag.text.strip().split("|")[0].strip() if title_tag else ""
 
-        full_text = " ".join(s.get_text(" ", strip=True) for s in siblings)
+        city_id = get_or_create_city(conn, city_def["name"], city_def["slug"], city_def["url"])
 
-        phone_m  = re.search(r'[\+0][\d\s/]{7,}', full_text)
-        phone    = phone_m.group(0).strip() if phone_m else ""
-        delivery = any(
-            "delivery_green" in img.get("src", "")
-            for s in siblings for img in s.find_all("img")
+        # ── check if this city actually has menu data ──────────────────────
+        # Dead cities return a page with no h2 restaurant blocks at all
+        restaurants_on_page = soup.find_all("h2")
+        if not restaurants_on_page:
+            print(f"  skipped (no restaurant data — likely Coming Soon page)")
+            continue
+
+        cur = conn.execute(
+            "INSERT INTO scrape_runs (city_id, scraped_at, day, date) VALUES (?, ?, ?, ?)",
+            (city_id, now, day_label, today)
         )
-        address = ""
-        for s in siblings:
-            pin = s.find("img", src=lambda x: x and "icon_pin" in x)
-            if pin:
-                address = pin.get("title", "").strip()
-                break
-
-        info_p = h2.find_next_sibling("p")
-        info   = info_p.get_text(" ", strip=True) if info_p else ""
-
-        menu_price = None
-        header_text = " ".join(s.get_text(" ", strip=True) for s in siblings[:4])
-        for mp_pat in [
-            r'(?:od|from|za)\s*(\d+[.,]\d{2})\s*(?:€|EUR|eur)',
-            r'^\s*(\d+[.,]\d{2})\s*(?:€|EUR)',
-            r'(\d+[.,]\d{2})\s*(?:€|EUR)',
-        ]:
-            mp = re.search(mp_pat, header_text, re.IGNORECASE)
-            if mp:
-                menu_price = float(mp.group(1).replace(',', '.'))
-                break
-
-        rest_id = upsert_restaurant(
-            conn, city_id, name, slug, url,
-            address, phone, delivery, info
-        )
-
-        raw_lines = []
-        for s in siblings:
-            table = s if s.name == "table" else s.find("table")
-            if not table:
-                continue
-            for row in table.find_all("tr"):
-                cells = row.find_all("td")
-                if len(cells) >= 2:
-                    lines = [l.strip() for l in cells[1].get_text("\n", strip=True).split("\n") if l.strip()]
-                    raw_lines.extend(lines)
-
-        groups = group_lines_into_items(raw_lines)
-        items  = [parse_item(g) for g in groups]
-
-        rows = [
-            (
-                rest_id, run_id,
-                item["type"], item["name"], item["description"],
-                item["weight"], item["price_eur"], menu_price,
-                json.dumps(item["allergens"], ensure_ascii=False) if item["allergens"] else "[]",
-                json.dumps(item["nutrition"],  ensure_ascii=False) if item["nutrition"]  else None,
-                item["raw"],
-            )
-            for item in items
-        ]
-
-        conn.executemany("""
-            INSERT INTO menu_items
-                (restaurant_id, scrape_run_id, type, name, description,
-                 weight, price_eur, menu_price, allergens, nutrition, raw)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, rows)
         conn.commit()
-        total_items += len(items)
-        print(f"  {name}: {len(items)} items")
+        run_id      = cur.lastrowid
+        last_run_id = run_id
+        city_items  = 0
+
+        # ── scrape restaurants for THIS city ──────────────────────────────
+        for h2 in restaurants_on_page:
+            name_tag = h2.find("a")
+            if not name_tag:
+                continue
+
+            name = name_tag.text.strip()
+            url  = name_tag.get("href", "")
+            slug = make_slug(name)
+
+            siblings = []
+            node = h2.find_next_sibling()
+            while node and node.name != "h2":
+                siblings.append(node)
+                node = node.find_next_sibling()
+
+            full_text = " ".join(s.get_text(" ", strip=True) for s in siblings)
+
+            phone_m  = re.search(r'[\+0][\d\s/]{7,}', full_text)
+            phone    = phone_m.group(0).strip() if phone_m else ""
+            delivery = any(
+                "delivery_green" in img.get("src", "")
+                for s in siblings for img in s.find_all("img")
+            )
+            address = ""
+            for s in siblings:
+                pin = s.find("img", src=lambda x: x and "icon_pin" in x)
+                if pin:
+                    address = pin.get("title", "").strip()
+                    break
+
+            info_p = h2.find_next_sibling("p")
+            info   = info_p.get_text(" ", strip=True) if info_p else ""
+
+            menu_price  = None
+            header_text = " ".join(s.get_text(" ", strip=True) for s in siblings[:4])
+            for mp_pat in [
+                r'(?:od|from|za)\s*(\d+[.,]\d{2})\s*(?:€|EUR|eur)',
+                r'^\s*(\d+[.,]\d{2})\s*(?:€|EUR)',
+                r'(\d+[.,]\d{2})\s*(?:€|EUR)',
+            ]:
+                mp = re.search(mp_pat, header_text, re.IGNORECASE)
+                if mp:
+                    menu_price = float(mp.group(1).replace(',', '.'))
+                    break
+
+            rest_id = upsert_restaurant(
+                conn, city_id, name, slug, url,
+                address, phone, delivery, info
+            )
+
+            raw_lines = []
+            for s in siblings:
+                table = s if s.name == "table" else s.find("table")
+                if not table:
+                    continue
+                for row in table.find_all("tr"):
+                    cells = row.find_all("td")
+                    if len(cells) >= 2:
+                        lines = [l.strip() for l in cells[1].get_text("\n", strip=True).split("\n") if l.strip()]
+                        raw_lines.extend(lines)
+
+            groups = group_lines_into_items(raw_lines)
+            items  = [parse_item(g) for g in groups]
+
+            rows = [
+                (
+                    rest_id, run_id,
+                    item["type"], item["name"], item["description"],
+                    item["weight"], item["price_eur"], menu_price,
+                    json.dumps(item["allergens"], ensure_ascii=False) if item["allergens"] else "[]",
+                    json.dumps(item["nutrition"],  ensure_ascii=False) if item["nutrition"]  else None,
+                    item["raw"],
+                )
+                for item in items
+            ]
+
+            conn.executemany("""
+                INSERT INTO menu_items
+                    (restaurant_id, scrape_run_id, type, name, description,
+                     weight, price_eur, menu_price, allergens, nutrition, raw)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, rows)
+            conn.commit()
+            city_items  += len(items)
+            total_items += len(items)
+            print(f"  {name}: {len(items)} items")
+
+        # ── discard run if nothing was scraped ─────────────────────────────
+        if city_items == 0:
+            conn.execute("DELETE FROM scrape_runs WHERE id = ?", (run_id,))
+            conn.commit()
+            last_run_id = None
+            print(f"  (no items found — run discarded)")
+        else:
+            print(f"  → {city_items} items total for {city_def['name']}")
 
     conn.close()
-    print(f"\nDone: {total_items} total items -> {DB_PATH}  (run_id={run_id}, date={today})")
+    print(f"\nDone: {total_items} total items -> {DB_PATH}  (last_run_id={last_run_id}, date={today})")
 
 # ── api key management ────────────────────────────────────────────────────────
 

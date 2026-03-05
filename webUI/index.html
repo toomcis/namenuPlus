@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>namenu+ admin</title>
+<link rel="icon" href="/favicon.ico">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#0a0a0a; --bg1:#111111; --bg2:#161616; --bg3:#1c1c1c;
+    --border:#242424; --border2:#2e2e2e;
+    --text:#d8d8d8; --text2:#888; --text3:#555;
+    --green:#4ade80; --green-dim:#1a3a28; --green-bg:#0f2018;
+    --red:#f87171; --red-dim:#3a1a1a;
+    --blue:#60a5fa; --blue-dim:#1a2a3a;
+    --amber:#fbbf24; --amber-dim:#3a2a0a;
+    --font:'JetBrains Mono',monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;display:flex;}
+  #sidebar{width:220px;min-height:100vh;background:var(--bg1);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;overflow-y:auto;}
+  #logo{padding:24px 20px 20px;border-bottom:1px solid var(--border);flex-shrink:0;}
+  #logo .logo-text{font-size:16px;font-weight:700;color:var(--green);letter-spacing:-0.5px;}
+  #logo .logo-sub{font-size:10px;color:var(--text3);margin-top:3px;}
+  nav{padding:12px 0;flex:1;}
+  .nav-section{font-size:9px;color:var(--text3);letter-spacing:1.5px;text-transform:uppercase;padding:12px 20px 6px;}
+  .nav-item{display:flex;align-items:center;gap:10px;padding:9px 20px;font-size:12px;color:var(--text2);cursor:pointer;border-left:2px solid transparent;transition:all 0.1s;user-select:none;}
+  .nav-item:hover{color:var(--text);background:var(--bg2);}
+  .nav-item.active{color:var(--green);border-left-color:var(--green);background:var(--green-bg);}
+  .nav-item .icon{font-size:14px;width:16px;text-align:center;flex-shrink:0;}
+  .city-nav-item{display:flex;align-items:center;gap:8px;padding:7px 20px 7px 28px;font-size:11px;color:var(--text3);cursor:pointer;border-left:2px solid transparent;transition:all 0.1s;user-select:none;}
+  .city-nav-item:hover{color:var(--text);background:var(--bg2);}
+  .city-nav-item.active{color:var(--green);border-left-color:var(--green);background:var(--green-bg);}
+  .city-dot{width:5px;height:5px;border-radius:50%;background:var(--text3);flex-shrink:0;transition:background 0.1s;}
+  .city-nav-item.active .city-dot{background:var(--green);}
+  .city-nav-item.has-data .city-dot{background:var(--blue);}
+  .city-nav-item.active .city-dot{background:var(--green);}
+  .city-label{flex:1;}
+  .city-count{font-size:9px;color:var(--text3);background:var(--bg3);border:1px solid var(--border);padding:1px 5px;border-radius:3px;}
+  .city-nav-item.active .city-count{color:var(--green);border-color:var(--green-dim);background:var(--green-bg);}
+  #sidebar-footer{padding:16px 20px;border-top:1px solid var(--border);font-size:10px;color:var(--text3);flex-shrink:0;}
+  #status-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--text3);margin-right:6px;vertical-align:middle;}
+  #status-dot.online{background:var(--green);box-shadow:0 0 6px var(--green);}
+  #main{margin-left:220px;flex:1;display:flex;flex-direction:column;}
+  #topbar{height:52px;background:var(--bg1);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 28px;position:sticky;top:0;z-index:10;}
+  #page-title{font-size:13px;font-weight:500;color:var(--text);}
+  #topbar-right{display:flex;align-items:center;gap:12px;}
+  .btn{font-family:var(--font);font-size:11px;padding:6px 14px;border-radius:4px;border:1px solid var(--border2);background:var(--bg2);color:var(--text2);cursor:pointer;transition:all 0.15s;}
+  .btn:hover{border-color:var(--green);color:var(--text);}
+  .btn.btn-green{background:var(--green-dim);border-color:var(--green);color:var(--green);}
+  .btn.btn-green:hover{background:var(--green);color:#000;}
+  .btn.btn-red{background:var(--red-dim);border-color:var(--red);color:var(--red);}
+  .btn.btn-red:hover{background:var(--red);color:#000;}
+  .btn:disabled{opacity:0.4;cursor:not-allowed;}
+  #content{padding:28px;flex:1;}
+  .page{display:none;}
+  .page.active{display:block;}
+  .card{background:var(--bg1);border:1px solid var(--border);border-radius:6px;padding:20px;margin-bottom:16px;}
+  .card-title{font-size:11px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:16px;}
+  .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
+  .stat-card{background:var(--bg1);border:1px solid var(--border);border-radius:6px;padding:16px 20px;}
+  .stat-label{font-size:10px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;}
+  .stat-value{font-size:28px;font-weight:700;color:var(--text);line-height:1;}
+  .stat-value.green{color:var(--green);}
+  .stat-value.blue{color:var(--blue);}
+  .stat-value.amber{color:var(--amber);}
+  .tbl{width:100%;border-collapse:collapse;font-size:12px;}
+  .tbl th{text-align:left;padding:8px 12px;font-size:10px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;border-bottom:1px solid var(--border);font-weight:400;}
+  .tbl td{padding:9px 12px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:top;}
+  .tbl tr:last-child td{border-bottom:none;}
+  .tbl tr:hover td{background:var(--bg2);}
+  .tbl .dim{color:var(--text3);}
+  .badge{display:inline-block;font-size:10px;padding:2px 7px;border-radius:3px;font-weight:400;}
+  .badge-green{background:var(--green-bg);color:var(--green);border:1px solid var(--green-dim);}
+  .badge-red{background:var(--red-dim);color:var(--red);border:1px solid #5a2a2a;}
+  .badge-blue{background:var(--blue-dim);color:var(--blue);border:1px solid #2a4a6a;}
+  .badge-amber{background:var(--amber-dim);color:var(--amber);border:1px solid #5a4a1a;}
+  .badge-gray{background:var(--bg3);color:var(--text3);border:1px solid var(--border);}
+  .allergen-pill{display:inline-block;font-size:9px;padding:1px 5px;border-radius:3px;background:var(--bg3);border:1px solid var(--border2);color:var(--text2);margin:1px;cursor:default;}
+  .allergen-pill:hover{background:var(--amber-dim);color:var(--amber);border-color:#5a4a1a;}
+  .nutr-pill{display:inline-block;font-size:9px;padding:1px 5px;border-radius:3px;background:var(--bg3);border:1px solid var(--border2);color:#6a9a6a;margin:1px;}
+  .nutr-kcal{background:var(--red-dim);border-color:#5a2a2a;color:var(--red);}
+  .rest-block{background:var(--bg1);border:1px solid var(--border);border-radius:6px;margin-bottom:10px;overflow:hidden;}
+  .rest-header{display:flex;align-items:center;gap:12px;padding:12px 16px;cursor:pointer;user-select:none;transition:background 0.1s;}
+  .rest-header:hover{background:var(--bg2);}
+  .rest-name{font-size:14px;color:#eee;font-weight:500;flex:1;}
+  .rest-info{font-size:11px;color:#6a8a6a;background:var(--green-bg);border-top:1px solid var(--border);padding:8px 16px;}
+  .rest-body{display:none;padding:0 16px 16px;}
+  .rest-body.open{display:block;}
+  .menu-tbl{width:100%;border-collapse:collapse;font-size:11px;margin-top:8px;}
+  .menu-tbl th{text-align:left;padding:6px 8px;font-size:9px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;border-bottom:1px solid var(--border);font-weight:400;}
+  .menu-tbl td{padding:7px 8px;border-bottom:1px solid var(--border);vertical-align:top;}
+  .menu-tbl tr:last-child td{border-bottom:none;}
+  .menu-tbl tr:hover td{background:var(--bg2);}
+  .type-soup{color:#7dd3fc;}
+  .type-main{color:var(--text);}
+  .type-dessert{color:#c4b5fd;}
+  .item-name{color:var(--text);}
+  .item-desc{font-size:10px;color:var(--text3);margin-top:2px;}
+  .item-nutrition{display:flex;gap:4px;flex-wrap:wrap;margin-top:3px;}
+  .toolbar{display:flex;gap:10px;align-items:center;margin-bottom:16px;flex-wrap:wrap;}
+  .toolbar input[type=text]{background:var(--bg2);border:1px solid var(--border2);color:var(--text);padding:6px 10px;font-family:var(--font);font-size:12px;border-radius:4px;width:240px;outline:none;}
+  .toolbar input[type=text]:focus{border-color:var(--green);}
+  .filter-btn{font-family:var(--font);font-size:11px;padding:5px 12px;border-radius:4px;border:1px solid var(--border2);background:var(--bg2);color:var(--text2);cursor:pointer;transition:all 0.1s;}
+  .filter-btn:hover{border-color:var(--green);color:var(--text);}
+  .filter-btn.active{background:var(--green-dim);border-color:var(--green);color:var(--green);}
+  .form-group{margin-bottom:14px;}
+  .form-label{font-size:11px;color:var(--text2);margin-bottom:6px;display:block;}
+  .form-input{width:100%;background:var(--bg2);border:1px solid var(--border2);color:var(--text);padding:8px 12px;font-family:var(--font);font-size:12px;border-radius:4px;outline:none;}
+  .form-input:focus{border-color:var(--green);}
+  #toast{position:fixed;bottom:24px;right:24px;background:var(--bg2);border:1px solid var(--border2);border-radius:6px;padding:12px 18px;font-size:12px;color:var(--text);z-index:9999;transform:translateY(20px);opacity:0;transition:all 0.2s;max-width:320px;}
+  #toast.show{transform:translateY(0);opacity:1;}
+  #toast.green{border-color:var(--green);color:var(--green);}
+  #toast.red{border-color:var(--red);color:var(--red);}
+  .log-box{background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:12px;font-size:11px;color:var(--green);min-height:120px;max-height:300px;overflow-y:auto;white-space:pre-wrap;word-break:break-all;}
+  .log-err{color:var(--red);}
+  #modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:100;align-items:center;justify-content:center;}
+  #modal-overlay.open{display:flex;}
+  #modal{background:var(--bg1);border:1px solid var(--border2);border-radius:8px;padding:24px;width:420px;max-width:90vw;}
+  #modal h3{font-size:14px;margin-bottom:16px;color:var(--text);}
+  #modal .modal-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:20px;}
+  .key-reveal{background:var(--bg);border:1px solid var(--green-dim);border-radius:4px;padding:10px 14px;font-size:12px;color:var(--green);word-break:break-all;margin-top:8px;display:flex;align-items:center;gap:10px;}
+  .key-reveal span{flex:1;}
+  .empty{color:var(--text3);font-size:12px;padding:24px;text-align:center;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .spinner{display:inline-block;width:12px;height:12px;border:2px solid var(--border2);border-top-color:var(--green);border-radius:50%;animation:spin 0.6s linear infinite;vertical-align:middle;margin-right:6px;}
+  #key-gate{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:200;align-items:center;justify-content:center;}
+  #key-gate.show{display:flex;}
+  #key-gate-box{background:var(--bg1);border:1px solid var(--border2);border-radius:8px;padding:32px;width:380px;max-width:90vw;}
+</style>
+</head>
+<body>
+
+<aside id="sidebar">
+  <div id="logo">
+    <div class="logo-text">namenu+</div>
+    <div class="logo-sub">admin dashboard</div>
+  </div>
+  <nav>
+    <div class="nav-section">data</div>
+    <div class="nav-item active" data-page="overview"><span class="icon">◈</span> Overview</div>
+    <div id="cities-nav"></div>
+    <div class="nav-section">browse</div>
+    <div class="nav-item" data-page="restaurants"><span class="icon">⌂</span> All Restaurants</div>
+    <div class="nav-section">system</div>
+    <div class="nav-item" data-page="scraper"><span class="icon">↻</span> Scraper</div>
+    <div class="nav-item" data-page="apikeys"><span class="icon">⚿</span> API Keys</div>
+  </nav>
+  <div id="sidebar-footer">
+    <span id="status-dot"></span>
+    <span id="status-text">connecting...</span>
+  </div>
+</aside>
+
+<div id="main">
+  <div id="topbar">
+    <span id="page-title">Overview</span>
+    <div id="topbar-right">
+      <span id="topbar-date" style="font-size:11px;color:var(--text3)"></span>
+      <button class="btn btn-green" onclick="triggerScrape(this)">↻ Run scraper</button>
+    </div>
+  </div>
+  <div id="content">
+
+    <div class="page active" id="page-overview">
+      <div class="stat-grid">
+        <div class="stat-card"><div class="stat-label">restaurants</div><div class="stat-value green" id="st-restaurants">—</div></div>
+        <div class="stat-card"><div class="stat-label">items today</div><div class="stat-value blue" id="st-items">—</div></div>
+        <div class="stat-card"><div class="stat-label">with delivery</div><div class="stat-value" id="st-delivery">—</div></div>
+        <div class="stat-card"><div class="stat-label">total scrape runs</div><div class="stat-value amber" id="st-runs">—</div></div>
+      </div>
+      <div class="card">
+        <div class="card-title">recent scrape runs</div>
+        <table class="tbl">
+          <thead><tr><th>city</th><th>date</th><th>day</th><th>scraped at</th><th>items</th></tr></thead>
+          <tbody id="runs-body"><tr><td colspan="5" class="empty">loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="page" id="page-menus">
+      <div class="toolbar">
+        <input type="text" id="menu-search" placeholder="search dishes..." oninput="filterMenus()">
+        <button class="filter-btn active" data-type="all" onclick="setTypeFilter(this,'all')">all</button>
+        <button class="filter-btn" data-type="soup" onclick="setTypeFilter(this,'soup')">soup</button>
+        <button class="filter-btn" data-type="main" onclick="setTypeFilter(this,'main')">main</button>
+        <button class="filter-btn" data-type="dessert" onclick="setTypeFilter(this,'dessert')">dessert</button>
+        <button class="filter-btn" id="btn-delivery" onclick="toggleDelivery()">delivery only</button>
+        <span id="menu-count" style="font-size:11px;color:var(--text3);margin-left:4px"></span>
+      </div>
+      <div id="restaurants-list"><div class="empty">pick a city from the sidebar</div></div>
+    </div>
+
+    <div class="page" id="page-restaurants">
+      <div class="card">
+        <div class="card-title">all restaurants</div>
+        <table class="tbl">
+          <thead><tr><th>name</th><th>city</th><th>address</th><th>phone</th><th>delivery</th><th>info</th></tr></thead>
+          <tbody id="rest-table-body"><tr><td colspan="6" class="empty">loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="page" id="page-scraper">
+      <div class="card">
+        <div class="card-title">manual scrape</div>
+        <p style="font-size:12px;color:var(--text2);margin-bottom:16px">Scrapes all configured cities. Also runs automatically via cron.</p>
+        <button class="btn btn-green" onclick="triggerScrape(this)">↻ Run scraper now</button>
+        <div style="margin-top:16px">
+          <div style="font-size:10px;color:var(--text3);margin-bottom:6px;letter-spacing:1px;text-transform:uppercase">output</div>
+          <div class="log-box" id="scrape-log">waiting for run...</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">scrape history</div>
+        <table class="tbl">
+          <thead><tr><th>city</th><th>date</th><th>day</th><th>scraped at</th><th>items</th></tr></thead>
+          <tbody id="scraper-runs-body"><tr><td colspan="5" class="empty">loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="page" id="page-apikeys">
+      <div style="display:flex;justify-content:flex-end;margin-bottom:16px">
+        <button class="btn btn-green" onclick="openNewKeyModal()">+ new key</button>
+      </div>
+      <div class="card">
+        <div class="card-title">api keys</div>
+        <table class="tbl">
+          <thead><tr><th>id</th><th>label</th><th>created</th><th>last used</th><th>status</th><th></th></tr></thead>
+          <tbody id="keys-body"><tr><td colspan="6" class="empty">loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- api key modal -->
+<div id="modal-overlay">
+  <div id="modal">
+    <h3>new API key</h3>
+    <div class="form-group">
+      <label class="form-label">label</label>
+      <input class="form-input" type="text" id="key-label-input" placeholder="e.g. my phone app">
+    </div>
+    <div id="key-result" style="display:none">
+      <div style="font-size:11px;color:var(--amber);margin-bottom:6px">⚠ copy this now — it won't be shown again</div>
+      <div class="key-reveal"><span id="key-value"></span><button class="btn" onclick="copyKey()" style="padding:4px 8px;font-size:10px">copy</button></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal()">cancel</button>
+      <button class="btn btn-green" id="modal-confirm" onclick="createKey()">create</button>
+    </div>
+  </div>
+</div>
+
+<!-- key gate -->
+<div id="key-gate">
+  <div id="key-gate-box">
+    <div style="font-size:20px;font-weight:700;color:var(--green);margin-bottom:4px">namenu+</div>
+    <div style="font-size:11px;color:var(--text3);margin-bottom:28px">Enter your API key to continue</div>
+    <div style="font-size:11px;color:var(--text2);margin-bottom:6px">API Key</div>
+    <input id="gate-input" type="password" autocomplete="off"
+      style="width:100%;background:var(--bg2);border:1px solid var(--border2);color:var(--text);padding:10px 12px;font-family:var(--font);font-size:12px;border-radius:4px;outline:none;margin-bottom:8px;"
+      placeholder="paste your key here">
+    <div id="gate-error" style="font-size:11px;color:var(--red);min-height:18px;margin-bottom:16px"></div>
+    <button id="gate-btn" onclick="submitKey()"
+      style="width:100%;font-family:var(--font);font-size:13px;padding:11px;background:var(--green-dim);border:1px solid var(--green);color:var(--green);border-radius:4px;cursor:pointer;">
+      Connect
+    </button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ── state ─────────────────────────────────────────────────────────────────────
+let API_KEY      = localStorage.getItem('namenu_admin_key') || '';
+let currentCity  = localStorage.getItem('namenu_city') || '';
+let currentPage  = 'overview';
+let allCities    = [];
+let allRestaurants = [];
+let todayItemCounts = {};
+let typeFilter   = 'all';
+let deliveryOnly = false;
+
+const ALLERGEN_NAMES = {1:'gluten',2:'crustaceans',3:'eggs',4:'fish',5:'peanuts',6:'soy',7:'milk',8:'nuts',9:'celery',10:'mustard',11:'sesame',12:'sulphites',13:'lupin',14:'molluscs'};
+
+// ── api ───────────────────────────────────────────────────────────────────────
+async function api(path, opts = {}) {
+  const res = await fetch(path, {
+    ...opts,
+    headers: {'Authorization': API_KEY, 'Content-Type': 'application/json', ...(opts.headers||{})}
+  });
+  if (res.status === 401 || res.status === 403) {
+    showKeyGate('invalid key — please re-enter');
+    throw new Error('auth');
+  }
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({detail: res.statusText}));
+    throw new Error(err.detail || res.statusText);
+  }
+  return res.json();
+}
+
+// ── key gate ──────────────────────────────────────────────────────────────────
+function showKeyGate(errMsg) {
+  document.getElementById('key-gate').classList.add('show');
+  document.getElementById('gate-error').textContent = errMsg || '';
+  setTimeout(() => document.getElementById('gate-input').focus(), 50);
+}
+
+function hideKeyGate() {
+  document.getElementById('key-gate').classList.remove('show');
+}
+
+async function submitKey() {
+  const input = document.getElementById('gate-input');
+  const errEl = document.getElementById('gate-error');
+  const btn   = document.getElementById('gate-btn');
+  const key   = input.value.trim();
+  if (!key) { errEl.textContent = 'please enter a key'; return; }
+
+  btn.textContent = 'checking...';
+  btn.disabled = true;
+
+  try {
+    const res = await fetch('/api/cities', {
+      headers: {'Authorization': key, 'Content-Type': 'application/json'}
+    });
+    if (res.status === 401 || res.status === 403) {
+      errEl.textContent = 'invalid key — try again';
+      input.value = '';
+      input.focus();
+      return;
+    }
+    if (!res.ok) { errEl.textContent = 'server error ' + res.status; return; }
+    API_KEY = key;
+    localStorage.setItem('namenu_admin_key', key);
+    hideKeyGate();
+    loadDashboard();
+  } catch(e) {
+    errEl.textContent = 'cannot reach server — is it running?';
+  } finally {
+    btn.textContent = 'Connect';
+    btn.disabled = false;
+  }
+}
+
+// enter key on input
+document.getElementById('gate-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') submitKey();
+});
+
+// ── toast ─────────────────────────────────────────────────────────────────────
+function toast(msg, type='') {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.className = 'show ' + type;
+  clearTimeout(el._t); el._t = setTimeout(() => el.className = '', 3000);
+}
+
+// ── status ────────────────────────────────────────────────────────────────────
+async function checkStatus() {
+  const dot = document.getElementById('status-dot');
+  const txt = document.getElementById('status-text');
+  try {
+    await fetch('/');
+    dot.className = 'online'; txt.textContent = 'API online';
+  } catch {
+    dot.className = ''; txt.textContent = 'API offline';
+  }
+}
+
+// ── nav ───────────────────────────────────────────────────────────────────────
+const pageTitles = {overview:'Overview',menus:'Menus',restaurants:'All Restaurants',scraper:'Scraper',apikeys:'API Keys'};
+
+function showPage(page, titleOverride) {
+  currentPage = page;
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.city-nav-item').forEach(n => n.classList.remove('active'));
+  const navItem = document.querySelector('[data-page="' + page + '"]');
+  if (navItem) navItem.classList.add('active');
+  document.getElementById('page-' + page).classList.add('active');
+  document.getElementById('page-title').textContent = titleOverride || pageTitles[page] || page;
+}
+
+document.querySelectorAll('.nav-item').forEach(item => {
+  item.addEventListener('click', () => {
+    const page = item.dataset.page;
+    showPage(page);
+    renderCitiesNav();
+    if (page === 'overview')    loadOverview();
+    if (page === 'restaurants') loadRestaurantsTable();
+    if (page === 'scraper')     loadScraperHistory();
+    if (page === 'apikeys')     loadKeys();
+    if (page === 'menus')       loadMenus();
+  });
+});
+
+// ── cities nav ────────────────────────────────────────────────────────────────
+function renderCitiesNav() {
+  const container = document.getElementById('cities-nav');
+  if (!allCities.length) {
+    container.innerHTML = '<div style="padding:6px 20px;font-size:10px;color:var(--text3)">no cities yet</div>';
+    return;
+  }
+  container.innerHTML = allCities.map(c => {
+    const count   = todayItemCounts[c.slug] || 0;
+    const hasData = count > 0;
+    const isActive = currentCity === c.slug && currentPage === 'menus';
+    return '<div class="city-nav-item' + (isActive?' active':'') + (hasData?' has-data':'') + '" onclick="selectCity(\'' + c.slug + '\',\'' + c.name.replace(/'/g,"\\'") + '\')">' +
+      '<span class="city-dot"></span>' +
+      '<span class="city-label">' + esc(c.name) + '</span>' +
+      (hasData ? '<span class="city-count">' + count + '</span>' : '') +
+      '</div>';
+  }).join('');
+}
+
+function selectCity(slug, name) {
+  currentCity = slug;
+  localStorage.setItem('namenu_city', slug);
+  showPage('menus', name);
+  renderCitiesNav();
+  loadMenus();
+}
+
+// ── overview ──────────────────────────────────────────────────────────────────
+async function loadOverview() {
+  try {
+    const stats = await api('/admin/stats');
+    document.getElementById('st-restaurants').textContent = stats.restaurants;
+    document.getElementById('st-items').textContent       = stats.items_today;
+    document.getElementById('st-delivery').textContent    = stats.delivery;
+    document.getElementById('st-runs').textContent        = stats.scrape_runs;
+    (stats.city_breakdown||[]).forEach(c => { todayItemCounts[c.slug] = c.items_today; });
+    renderCitiesNav();
+    const tbody = document.getElementById('runs-body');
+    tbody.innerHTML = (stats.recent_runs||[]).map(r =>
+      '<tr><td><span class="badge badge-gray">' + esc(r.city_name||'—') + '</span></td>' +
+      '<td>' + r.date + '</td><td class="dim">' + r.day + '</td>' +
+      '<td class="dim">' + r.scraped_at.replace('T',' ').slice(0,19) + '</td>' +
+      '<td><span class="badge badge-blue">' + r.item_count + ' items</span></td></tr>'
+    ).join('') || '<tr><td colspan="5" class="empty">no runs yet</td></tr>';
+  } catch(e) { if (e.message !== 'auth') toast('stats error: ' + e.message, 'red'); }
+}
+
+async function loadCitiesData() {
+  try { allCities = await api('/api/cities'); } catch { allCities = []; }
+  renderCitiesNav();
+  if (!currentCity && allCities.length > 0) {
+    currentCity = allCities[0].slug;
+    localStorage.setItem('namenu_city', currentCity);
+  }
+}
+
+async function loadDashboard() {
+  await loadCitiesData();
+  await loadOverview();
+}
+
+// ── menus ─────────────────────────────────────────────────────────────────────
+async function loadMenus() {
+  if (!currentCity) {
+    document.getElementById('restaurants-list').innerHTML = '<div class="empty">pick a city from the sidebar</div>';
+    return;
+  }
+  document.getElementById('restaurants-list').innerHTML = '<div class="empty"><span class="spinner"></span>loading...</div>';
+  try {
+    const today = new Date().toISOString().slice(0,10);
+    const data  = await api('/admin/menus?city=' + currentCity + '&date=' + today);
+    allRestaurants = data.restaurants || [];
+    if (!allRestaurants.length) {
+      document.getElementById('restaurants-list').innerHTML = '<div class="empty">no menu data for today — try running the scraper</div>';
+      return;
+    }
+    renderRestaurants();
+  } catch(e) {
+    if (e.message !== 'auth')
+      document.getElementById('restaurants-list').innerHTML = '<div class="empty">error: ' + e.message + '</div>';
+  }
+}
+
+function renderRestaurants() {
+  const search = document.getElementById('menu-search').value.toLowerCase();
+  const list   = document.getElementById('restaurants-list');
+  let visible  = 0;
+  const html = allRestaurants.map(r => {
+    if (deliveryOnly && !r.delivery) return '';
+    const items = r.menu.filter(item => {
+      if (typeFilter !== 'all' && item.type !== typeFilter) return false;
+      if (search && !item.name?.toLowerCase().includes(search) && !item.description?.toLowerCase().includes(search)) return false;
+      return true;
+    });
+    if (search && !items.length) return '';
+    visible++;
+    const rows = items.map(item =>
+      '<tr><td class="type-' + item.type + '">' + item.type + '</td><td>' +
+      '<div class="item-name">' + esc(item.name||'—') + '</div>' +
+      (item.description ? '<div class="item-desc">' + esc(item.description) + '</div>' : '') +
+      renderNutrition(item.nutrition) + '</td>' +
+      '<td class="dim">' + (item.weight||'—') + '</td>' +
+      '<td>' + (item.price_eur ? item.price_eur.toFixed(2)+' €' : '<span class="dim">—</span>') + '</td>' +
+      '<td>' + renderAllergens(item.allergens) + '</td></tr>'
+    ).join('');
+    return '<div class="rest-block"><div class="rest-header" onclick="toggleRest(this)">' +
+      '<span class="rest-name">' + esc(r.name) + '</span>' +
+      (r.menu_price ? '<span class="badge badge-green">from ' + r.menu_price.toFixed(2) + ' €</span>' : '') +
+      '<span class="badge ' + (r.delivery?'badge-green':'badge-gray') + '">' + (r.delivery?'delivery':'no delivery') + '</span>' +
+      '<span class="badge badge-blue">' + items.length + ' items</span>' +
+      '<span style="color:var(--text3);font-size:14px">▾</span></div>' +
+      (r.info ? '<div class="rest-info">' + esc(r.info) + '</div>' : '') +
+      '<div class="rest-body">' +
+      (rows ? '<table class="menu-tbl"><thead><tr><th>type</th><th>name</th><th>weight</th><th>price</th><th>allergens</th></tr></thead><tbody>' + rows + '</tbody></table>' : '<div class="empty">no items match filter</div>') +
+      '</div></div>';
+  }).join('');
+  list.innerHTML = html || '<div class="empty">no restaurants match filter</div>';
+  document.getElementById('menu-count').textContent = visible + ' restaurants';
+}
+
+function toggleRest(h) { h.parentElement.querySelector('.rest-body').classList.toggle('open'); }
+function filterMenus() { renderRestaurants(); }
+function setTypeFilter(btn, type) {
+  typeFilter = type;
+  document.querySelectorAll('.filter-btn[data-type]').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderRestaurants();
+}
+function toggleDelivery() {
+  deliveryOnly = !deliveryOnly;
+  document.getElementById('btn-delivery').classList.toggle('active', deliveryOnly);
+  renderRestaurants();
+}
+function renderAllergens(list) {
+  if (!list||!list.length) return '<span class="dim">—</span>';
+  return list.map(n => '<span class="allergen-pill" title="' + (ALLERGEN_NAMES[n]||'') + '">' + n + '</span>').join('');
+}
+function renderNutrition(n) {
+  if (!n) return '';
+  const p = [];
+  if (n.kcal)      p.push('<span class="nutr-pill nutr-kcal">' + n.kcal + ' kcal</span>');
+  if (n.protein_g) p.push('<span class="nutr-pill">P ' + n.protein_g + 'g</span>');
+  if (n.fat_g)     p.push('<span class="nutr-pill">F ' + n.fat_g + 'g</span>');
+  if (n.carbs_g)   p.push('<span class="nutr-pill">C ' + n.carbs_g + 'g</span>');
+  return p.length ? '<div class="item-nutrition">' + p.join('') + '</div>' : '';
+}
+
+// ── restaurants ───────────────────────────────────────────────────────────────
+async function loadRestaurantsTable() {
+  try {
+    const data  = await api('/admin/restaurants');
+    const tbody = document.getElementById('rest-table-body');
+    tbody.innerHTML = data.map(r =>
+      '<tr><td><strong>' + esc(r.name) + '</strong><br><span class="dim" style="font-size:10px">' + r.slug + '</span></td>' +
+      '<td><span class="badge badge-gray">' + esc(r.city_name||'—') + '</span></td>' +
+      '<td class="dim">' + esc(r.address||'—') + '</td>' +
+      '<td class="dim">' + esc(r.phone||'—') + '</td>' +
+      '<td><span class="badge ' + (r.delivery?'badge-green':'badge-gray') + '">' + (r.delivery?'yes':'no') + '</span></td>' +
+      '<td class="dim" style="font-size:11px">' + esc(r.info||'—') + '</td></tr>'
+    ).join('') || '<tr><td colspan="6" class="empty">no restaurants</td></tr>';
+  } catch(e) { if (e.message !== 'auth') toast('Error: ' + e.message, 'red'); }
+}
+
+// ── scraper ───────────────────────────────────────────────────────────────────
+async function triggerScrape(btn) {
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>running...';
+  const log = document.getElementById('scrape-log');
+  if (log) log.textContent = 'starting scrape...\n';
+  try {
+    const res = await api('/admin/scrape', {method:'POST'});
+    if (log) log.textContent += '\ndone — ' + res.items_scraped + ' items scraped\nrun_id: ' + res.run_id + '\n\n' + (res.output||'');
+    toast('scraped ' + res.items_scraped + ' items', 'green');
+    await loadDashboard();
+  } catch(e) {
+    if (log && e.message !== 'auth') log.innerHTML += '\n<span class="log-err">error: ' + e.message + '</span>';
+    if (e.message !== 'auth') toast('Scrape failed: ' + e.message, 'red');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '↻ Run scraper';
+  }
+}
+
+async function loadScraperHistory() {
+  try {
+    const data  = await api('/admin/runs');
+    const tbody = document.getElementById('scraper-runs-body');
+    tbody.innerHTML = data.map(r =>
+      '<tr><td><span class="badge badge-gray">' + esc(r.city_name||'—') + '</span></td>' +
+      '<td>' + r.date + '</td><td class="dim">' + r.day + '</td>' +
+      '<td class="dim">' + r.scraped_at.replace('T',' ').slice(0,19) + '</td>' +
+      '<td><span class="badge badge-blue">' + r.item_count + ' items</span></td></tr>'
+    ).join('') || '<tr><td colspan="5" class="empty">no runs yet</td></tr>';
+  } catch(e) { if (e.message !== 'auth') toast('Error: ' + e.message, 'red'); }
+}
+
+// ── api keys ──────────────────────────────────────────────────────────────────
+async function loadKeys() {
+  try {
+    const keys  = await api('/admin/keys');
+    const tbody = document.getElementById('keys-body');
+    tbody.innerHTML = keys.map(k =>
+      '<tr><td class="dim">' + k.id + '</td>' +
+      '<td><strong>' + esc(k.label||'—') + '</strong></td>' +
+      '<td class="dim">' + k.created_at.slice(0,10) + '</td>' +
+      '<td class="dim">' + (k.last_used?k.last_used.slice(0,16).replace('T',' '):'never') + '</td>' +
+      '<td><span class="badge ' + (k.active?'badge-green':'badge-red') + '">' + (k.active?'active':'revoked') + '</span></td>' +
+      '<td>' + (k.active?'<button class="btn btn-red" onclick="revokeKey(' + k.id + ',this)" style="padding:3px 8px;font-size:10px">revoke</button>':'') + '</td></tr>'
+    ).join('') || '<tr><td colspan="6" class="empty">no keys</td></tr>';
+  } catch(e) { if (e.message !== 'auth') toast('Error: ' + e.message, 'red'); }
+}
+
+function openNewKeyModal() {
+  document.getElementById('key-label-input').value = '';
+  document.getElementById('key-result').style.display = 'none';
+  document.getElementById('modal-confirm').style.display = '';
+  document.getElementById('modal-overlay').classList.add('open');
+}
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('open');
+  loadKeys();
+}
+async function createKey() {
+  const label = document.getElementById('key-label-input').value.trim();
+  if (!label) { toast('enter a label', 'red'); return; }
+  try {
+    const res = await api('/admin/keys', {method:'POST', body:JSON.stringify({label})});
+    document.getElementById('key-value').textContent = res.key;
+    document.getElementById('key-result').style.display = 'block';
+    document.getElementById('modal-confirm').style.display = 'none';
+    toast('key created — copy it now!', 'green');
+  } catch(e) { if (e.message !== 'auth') toast('Error: ' + e.message, 'red'); }
+}
+function copyKey() {
+  navigator.clipboard.writeText(document.getElementById('key-value').textContent)
+    .then(() => toast('copied!', 'green'));
+}
+async function revokeKey(id, btn) {
+  if (!confirm('Revoke key #' + id + '?')) return;
+  btn.disabled = true;
+  try {
+    await api('/admin/keys/' + id, {method:'DELETE'});
+    toast('key revoked', 'green');
+    loadKeys();
+  } catch(e) { if (e.message !== 'auth') toast('Error: ' + e.message, 'red'); btn.disabled = false; }
+}
+
+// ── utils ─────────────────────────────────────────────────────────────────────
+function esc(str) {
+  return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ── init ──────────────────────────────────────────────────────────────────────
+document.getElementById('topbar-date').textContent = new Date().toLocaleDateString('en-GB', {
+  weekday:'short', day:'2-digit', month:'short', year:'numeric'
+});
+checkStatus();
+setInterval(checkStatus, 30000);
+
+if (API_KEY) {
+  loadDashboard();
+} else {
+  showKeyGate();
+}
+</script>
+</body>
+</html>
