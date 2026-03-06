@@ -6,6 +6,8 @@ services:
     image: ghcr.io/toomcis/namenuplus:latest
     restart: unless-stopped
     container_name: namenuPlus-API
+    environment:
+      - PORT=8000
     ports:
       - "8000:8000"
     volumes:
