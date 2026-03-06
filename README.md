@@ -41,9 +41,9 @@ On startup the container immediately runs a full scrape so the DB is never empty
 
 Two separate SQLite databases are used:
 
-| File | Contains |
-|---|---|
-| `main.db` | API keys, scrape audit log |
+| File          | Contains                                |
+| ------------- | --------------------------------------- |
+| `main.db`   | API keys, scrape audit log              |
 | `namenu.db` | Cities, restaurants, menus, scrape runs |
 
 This keeps auth data separate from scraped data — you can wipe `namenu.db` without touching your keys.
@@ -52,7 +52,7 @@ This keeps auth data separate from scraped data — you can wipe `namenu.db` wit
 
 ## API
 
-**Base URL:** `https://api.namenuplus.toomcis.eu`
+**Base URL:** `https://api.toomcis.eu`
 
 All requests require an `Authorization` header containing your API key.
 
@@ -63,27 +63,27 @@ Authorization: your-api-key-here
 
 ### Endpoints
 
-| Method | Path | Description |
-|---|---|---|
-| `GET` | `/api/cities` | List all available cities |
-| `GET` | `/api/{city}/week` | Which days have data this week |
-| `GET` | `/api/{city}/restaurants` | Restaurants for a city on a given date |
-| `GET` | `/api/{city}/restaurants/{slug}` | Full menu for one restaurant |
-| `GET` | `/api/{city}/menu` | All dishes, filterable |
+| Method  | Path                               | Description                            |
+| ------- | ---------------------------------- | -------------------------------------- |
+| `GET` | `/api/cities`                    | List all available cities              |
+| `GET` | `/api/{city}/week`               | Which days have data this week         |
+| `GET` | `/api/{city}/restaurants`        | Restaurants for a city on a given date |
+| `GET` | `/api/{city}/restaurants/{slug}` | Full menu for one restaurant           |
+| `GET` | `/api/{city}/menu`               | All dishes, filterable                 |
 
 ### `/api/{city}/menu` query params
 
-| Param | Type | Description |
-|---|---|---|
-| `date` | `YYYY-MM-DD` | Menu date, defaults to today |
-| `type` | `soup \| main \| dessert` | Dish type filter |
-| `delivery` | `bool` | Delivery-only restaurants |
-| `max_price` | `float` | Max price in EUR |
-| `exclude_allergens` | `1,7,14` | EU allergen numbers to exclude (comma-separated) |
-| `limit` | `int` | Max results (default 50, max 200) |
-| `offset` | `int` | Pagination offset |
+| Param                 | Type                      | Description                                      |
+| --------------------- | ------------------------- | ------------------------------------------------ |
+| `date`              | `YYYY-MM-DD`            | Menu date, defaults to today                     |
+| `type`              | `soup \| main \| dessert` | Dish type filter                                 |
+| `delivery`          | `bool`                  | Delivery-only restaurants                        |
+| `max_price`         | `float`                 | Max price in EUR                                 |
+| `exclude_allergens` | `1,7,14`                | EU allergen numbers to exclude (comma-separated) |
+| `limit`             | `int`                   | Max results (default 50, max 200)                |
+| `offset`            | `int`                   | Pagination offset                                |
 
-Interactive docs available at [`api.namenuplus.toomcis.eu/docs`](https://api.namenuplus.toomcis.eu/docs)
+Full API docs available at [namenuplus.toomcis.eu](https://namenuplus.toomcis.eu)
 
 ---
 
@@ -102,7 +102,6 @@ The recommended way to run namenu+ is via the published Docker image.
 ### Quick start
 
 ```bash
-# pull and run
 docker run -d \
   --name namenuPlus-API \
   -p 2332:2332 \
@@ -156,10 +155,10 @@ Save this — it won't be shown again.
 
 ### Environment variables
 
-| Variable | Default | Description |
-|---|---|---|
-| `PORT` | `8000` | Port the API listens on |
-| `MAIN_DB` | `main.db` | Path to the auth database |
+| Variable      | Default       | Description                    |
+| ------------- | ------------- | ------------------------------ |
+| `PORT`      | `8000`      | Port the API listens on        |
+| `MAIN_DB`   | `main.db`   | Path to the auth database      |
 | `NAMENU_DB` | `namenu.db` | Path to the menu data database |
 
 ### ⚠️ Keep your image up to date
@@ -180,7 +179,7 @@ Example nginx rule:
 
 ```nginx
 server {
-    server_name api.namenuplus.toomcis.eu;
+    server_name api.toomcis.eu;
 
     # restrict dashboard and admin routes to local access only
     location ~ ^/(admin.*|)$ {
@@ -292,11 +291,11 @@ In a future update, the backend will introduce **opt-in** anonymous usage data c
 
 ## Roadmap
 
-- [x] Docker image + compose setup
-- [x] Multi-city support
-- [x] Admin dashboard with scrape history
-- [x] Allergen and price filtering
-- [x] EN / SK / CS localization
+- [X] Docker image + compose setup
+- [X] Multi-city support
+- [X] Admin dashboard with scrape history
+- [X] Allergen and price filtering
+- [X] EN / SK / CS localization
 - [ ] More cities as namenu.sk expands
 - [ ] Additional scraper sources beyond namenu.sk
 - [ ] Automatic version detection with behind-branch warnings
