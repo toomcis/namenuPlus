@@ -144,7 +144,7 @@ api_keys       id, key_hash, label, created_at, last_used, active
 
 ## Roadmap
 
-- [ ] Docker image + compose setup
+- [x] Docker image + compose setup
 - [ ] Android app
 - [ ] More cities (as namenu.sk expands)
 - [ ] Additional scraper sources beyond namenu.sk
