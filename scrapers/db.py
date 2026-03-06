@@ -1,12 +1,14 @@
-# scrapers/db.py — shared database helpers for all scrapers
+# scrapers/db.py — shared database helpers for all namenu scrapers
+# This file only touches namenu.db (scraped menu data).
+# API keys and scrape_log live in main.db — see main.py.
 import sqlite3
 import os
 
-DB_PATH = os.environ.get("NAMENU_DB", "namenu.db")
+NAMENU_DB = os.environ.get("NAMENU_DB", "namenu.db")
 
 
 def connect():
-    conn = sqlite3.connect(DB_PATH)
+    conn = sqlite3.connect(NAMENU_DB)
     conn.execute("PRAGMA journal_mode=WAL")
     conn.execute("PRAGMA foreign_keys=ON")
     return conn
@@ -59,15 +61,6 @@ def init_db(conn):
             raw           TEXT
         );
 
-        CREATE TABLE IF NOT EXISTS api_keys (
-            id         INTEGER PRIMARY KEY,
-            key_hash   TEXT NOT NULL UNIQUE,
-            label      TEXT,
-            created_at TEXT NOT NULL,
-            last_used  TEXT,
-            active     INTEGER NOT NULL DEFAULT 1
-        );
-
         CREATE INDEX IF NOT EXISTS idx_menu_items_run   ON menu_items(scrape_run_id);
         CREATE INDEX IF NOT EXISTS idx_menu_items_rest  ON menu_items(restaurant_id);
         CREATE INDEX IF NOT EXISTS idx_menu_items_type  ON menu_items(type);
@@ -77,7 +70,7 @@ def init_db(conn):
         CREATE INDEX IF NOT EXISTS idx_restaurants_slug ON restaurants(city_id, slug);
     """)
 
-    # ── migrate existing DBs that don't have the source column yet ────────────
+    # migrate existing DBs that don't have the source column yet
     cols = [r[1] for r in conn.execute("PRAGMA table_info(scrape_runs)").fetchall()]
     if "source" not in cols:
         conn.execute("ALTER TABLE scrape_runs ADD COLUMN source TEXT NOT NULL DEFAULT 'namenu'")

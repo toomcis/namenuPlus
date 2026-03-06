@@ -7,12 +7,13 @@ services:
     restart: unless-stopped
     container_name: namenuPlus-API
     environment:
-      - PORT=8000
+      - PORT=2332
+      - MAIN_DB=/app/data/main.db
+      - NAMENU_DB=/app/data/namenu.db
     ports:
-      - "8000:8000"
+      - "2332:2332"
     volumes:
-      - namenu_data:/app
-    network_mode: "host"
+      - namenu_data:/app/data   # persists both main.db and namenu.db
     tty: true
     stdin_open: true
 
