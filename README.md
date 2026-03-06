@@ -158,7 +158,8 @@ api_keys       id, key_hash, label, created_at, last_used, active
 
 PRs welcome, especially:
 
-- **New cities** — if you know of a city portal with structured lunch menus
+- **Translating website** - if you know `SK / CZ / EN` languages and are willing to translate missing or false sections please edit the [webUI/locales](webUI/locales/) and [webUI/index.html](webUI/index.html)
+- **New cities** — if you know of a city portal wth structured lunch menus
 - **New scraper sources** — any Slovak/Czech lunch aggregator site
 - **Parser improvements** — the namenu scraper handles a lot of edge cases but there's always more
 

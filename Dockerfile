@@ -8,6 +8,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Set the working directory in the container
 WORKDIR /app
 
+ENV PORT=8000
+
 # Copy requirements.txt and install dependencies
 COPY requirements.txt /app
 RUN pip install --no-cache-dir -r requirements.txt
@@ -20,7 +22,8 @@ COPY webUI ./webUI
 COPY scrapers ./scrapers
 COPY static ./static
 
-# Expose the port that the application will run on
+RUN chmod +x start.sh scrapeAll.sh
+
 EXPOSE 8000
 
 # Start the application

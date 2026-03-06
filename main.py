@@ -6,7 +6,6 @@
 #   python main.py --add-key "my app"
 #   python main.py --list-keys
 #   python main.py --revoke-key 3
-
 import sqlite3
 import hashlib
 import secrets
@@ -15,7 +14,6 @@ import sys
 from datetime import datetime
 
 DB_PATH = os.environ.get("NAMENU_DB", "namenu.db")
-
 
 def init_db(conn):
     """Minimal init — just ensure api_keys table exists."""
@@ -31,12 +29,21 @@ def init_db(conn):
     """)
     conn.commit()
 
-
 def add_api_key(label):
+    conn = sqlite3.connect(DB_PATH)
+    init_db(conn)
+
+    existing = conn.execute(
+        "SELECT id FROM api_keys WHERE label = ? AND active = 1", (label,)
+    ).fetchone()
+
+    if existing:
+        print(f"API key for '{label}' already exists (id={existing[0]}), skipping.")
+        conn.close()
+        return
+
     key      = secrets.token_urlsafe(32)
     key_hash = hashlib.sha256(key.encode()).hexdigest()
-    conn     = sqlite3.connect(DB_PATH)
-    init_db(conn)
     conn.execute(
         "INSERT INTO api_keys (key_hash, label, created_at) VALUES (?, ?, ?)",
         (key_hash, label, datetime.now().isoformat())
@@ -46,7 +53,6 @@ def add_api_key(label):
     print(f"API key created for '{label}':")
     print(f"  {key}")
     print("Save this — it won't be shown again.")
-
 
 def list_api_keys():
     conn = sqlite3.connect(DB_PATH)
@@ -63,7 +69,6 @@ def list_api_keys():
     for r in rows:
         print(f"{r[0]:>4}  {(r[1] or ''):.<25}  {r[2][:19]:<20}  {(r[3] or 'never')[:19]:<20}  {'yes' if r[4] else 'no'}")
 
-
 def revoke_api_key(key_id):
     conn = sqlite3.connect(DB_PATH)
     conn.execute("UPDATE api_keys SET active = 0 WHERE id = ?", (key_id,))
@@ -71,10 +76,8 @@ def revoke_api_key(key_id):
     conn.close()
     print(f"Key {key_id} revoked.")
 
-
 if __name__ == "__main__":
     args = sys.argv[1:]
-
     if not args or args[0] in ("--help", "-h"):
         print("namenu+ CLI")
         print("  python main.py --add-key <label>    create a new API key")

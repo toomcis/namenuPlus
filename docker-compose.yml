@@ -1,0 +1,18 @@
+services:
+  namenuPlus:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ghcr.io/toomcis/namenuplus:latest
+    restart: unless-stopped
+    container_name: namenuPlus-API
+    ports:
+      - "8000:8000"
+    volumes:
+      - namenu_data:/app
+    network_mode: "host"
+    tty: true
+    stdin_open: true
+
+volumes:
+  namenu_data:
