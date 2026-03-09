@@ -1127,15 +1127,19 @@ async function handleGetNotifyPrefs(request, env) {
   const { user, error } = await requireAuth(request, env);
   if (error) return cors(json({ error }, 401));
   const row = await env.DB.prepare(
-    'SELECT notify_enabled, notify_time FROM users WHERE id = ?'
+    'SELECT notify_enabled, notify_time, timezone_offset FROM users WHERE id = ?'
   ).bind(user.id).first();
-  return cors(json({ notify_enabled: !!row.notify_enabled, notify_time: row.notify_time ?? '10:30' }));
+  return cors(json({
+    notify_enabled:   !!row.notify_enabled,
+    notify_time:      row.notify_time      ?? '10:30',
+    timezone_offset:  row.timezone_offset  ?? 0,
+  }));
 }
 
 async function handleSetNotifyPrefs(request, env) {
   const { user, error } = await requireAuth(request, env);
   if (error) return cors(json({ error }, 401));
-  const { notify_enabled, notify_time } = await parseBody(request) || {};
+  const { notify_enabled, notify_time, timezone_offset } = await parseBody(request) || {};
 
   const updates = [], bindings = [];
 
@@ -1144,17 +1148,22 @@ async function handleSetNotifyPrefs(request, env) {
     bindings.push(notify_enabled ? 1 : 0);
   }
   if (notify_time !== undefined) {
-    // Validate HH:MM format
-    if (!/^\d{2}:\d{2}$/.test(notify_time)) 
+    if (!/^\d{2}:\d{2}$/.test(notify_time))
       return cors(json({ error: 'notify_time must be in HH:MM format' }, 400));
     updates.push('notify_time = ?');
     bindings.push(notify_time);
+  }
+  if (timezone_offset !== undefined) {
+    if (!Number.isInteger(timezone_offset) || timezone_offset < -720 || timezone_offset > 840)
+      return cors(json({ error: 'timezone_offset must be integer minutes between -720 and 840' }, 400));
+    updates.push('timezone_offset = ?');
+    bindings.push(timezone_offset);
   }
 
   if (!updates.length) return cors(json({ error: 'nothing to update' }, 400));
   bindings.push(user.id);
   await env.DB.prepare(`UPDATE users SET ${updates.join(', ')} WHERE id = ?`).bind(...bindings).run();
-  return cors(json({ ok: true, notify_enabled: !!notify_enabled, notify_time: notify_time ?? '10:30' }));
+  return cors(json({ ok: true, notify_enabled: !!notify_enabled, notify_time: notify_time ?? '10:30', timezone_offset: timezone_offset ?? 0 }));
 }
 
 // ── FYP: Onboarding ───────────────────────────────────────────────────────────
@@ -1878,20 +1887,31 @@ export default {
   },
 
   async scheduled(event, env, ctx) {
-    const now   = new Date();
-    const hh    = now.getUTCHours().toString().padStart(2, '0');
-    const mm    = now.getUTCMinutes().toString().padStart(2, '0');
-    const time  = `${hh}:${mm}`;
+    const now = new Date();
+    const hh  = now.getUTCHours().toString().padStart(2, '0');
+    const mm  = now.getUTCMinutes().toString().padStart(2, '0');
+    const utcTime = `${hh}:${mm}`;
 
-    // Find all users with notifications enabled at this time who have FCM tokens
+    // Fetch all enabled users with tokens — filter by timezone-adjusted time in JS
     const rows = await env.DB.prepare(`
-      SELECT u.id, u.display_name, f.token
+      SELECT u.id, u.display_name, u.notify_time, u.timezone_offset, f.token
       FROM users u
       JOIN fcm_tokens f ON f.user_id = u.id
-      WHERE u.notify_enabled = 1 AND u.notify_time = ?
-    `).bind(time).all();
+      WHERE u.notify_enabled = 1
+    `).all();
 
-    if (rows.results.length === 0) return;
+    // Convert each user's local notify_time to UTC and check if it matches now
+    const matching = rows.results.filter(row => {
+      const [h, m]       = row.notify_time.split(':').map(Number);
+      const localMinutes = h * 60 + m;
+      const offset       = row.timezone_offset ?? 0;
+      const utcMinutes   = ((localMinutes - offset) % 1440 + 1440) % 1440;
+      const utcHH        = String(Math.floor(utcMinutes / 60)).padStart(2, '0');
+      const utcMM        = String(utcMinutes % 60).padStart(2, '0');
+      return `${utcHH}:${utcMM}` === utcTime;
+    });
+
+    if (matching.length === 0) return;
 
     let accessToken;
     try {
@@ -1902,7 +1922,7 @@ export default {
     }
 
     const results = await Promise.allSettled(
-      rows.results.map(row =>
+      matching.map(row =>
         sendFcmMessage(
           accessToken,
           env.FCM_PROJECT_ID,
@@ -1915,7 +1935,7 @@ export default {
     );
 
     // Clean up invalid tokens
-    const invalidTokens = rows.results
+    const invalidTokens = matching
       .filter((_, i) => results[i].status === 'fulfilled' && results[i].value?.invalid)
       .map(r => r.token);
 
@@ -1925,6 +1945,6 @@ export default {
       );
     }
 
-    console.log(`Cron ${time}: sent ${results.filter(r => r.status === 'fulfilled' && !r.value?.invalid).length}, cleaned ${invalidTokens.length} invalid tokens`);
+    console.log(`Cron ${utcTime}: sent ${results.filter(r => r.status === 'fulfilled' && !r.value?.invalid).length}, cleaned ${invalidTokens.length} invalid tokens`);
   },
 };
