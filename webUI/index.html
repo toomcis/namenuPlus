@@ -1,809 +1,2822 @@
 <!DOCTYPE html>
-<html lang="en">
+<!-- webUI/index.html — ToMenu Admin Dashboard -->
+<!-- Single-page Alpine.js app. Served by FastAPI at / -->
+<html lang="en" x-data="app()" x-init="init()">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ToMenu admin</title>
+<title>ToMenu / admin</title>
 <link rel="icon" href="/favicon.ico">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 <style>
-  :root {
-    --bg:#0a0a0a; --bg1:#111111; --bg2:#161616; --bg3:#1c1c1c;
-    --border:#242424; --border2:#2e2e2e;
-    --text:#d8d8d8; --text2:#888; --text3:#555;
-    --green:#4ade80; --green-dim:#1a3a28; --green-bg:#0f2018;
-    --red:#f87171; --red-dim:#3a1a1a;
-    --blue:#60a5fa; --blue-dim:#1a2a3a;
-    --amber:#fbbf24; --amber-dim:#3a2a0a;
-    --font:'JetBrains Mono',monospace;
-  }
-  *{box-sizing:border-box;margin:0;padding:0;}
-  body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;display:flex;}
-  #sidebar{width:220px;min-height:100vh;background:var(--bg1);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;overflow-y:auto;}
-  #logo{padding:24px 20px 20px;border-bottom:1px solid var(--border);flex-shrink:0;}
-  #logo .logo-text{font-size:16px;font-weight:700;color:var(--green);letter-spacing:-0.5px;}
-  #logo .logo-sub{font-size:10px;color:var(--text3);margin-top:3px;}
-  nav{padding:12px 0;flex:1;}
-  .nav-section{font-size:9px;color:var(--text3);letter-spacing:1.5px;text-transform:uppercase;padding:12px 20px 6px;}
-  .nav-item{display:flex;align-items:center;gap:10px;padding:9px 20px;font-size:12px;color:var(--text2);cursor:pointer;border-left:2px solid transparent;transition:all 0.1s;user-select:none;}
-  .nav-item:hover{color:var(--text);background:var(--bg2);}
-  .nav-item.active{color:var(--green);border-left-color:var(--green);background:var(--green-bg);}
-  .nav-item .icon{font-size:14px;width:16px;text-align:center;flex-shrink:0;}
-  .city-nav-item{display:flex;align-items:center;gap:8px;padding:7px 20px 7px 28px;font-size:11px;color:var(--text3);cursor:pointer;border-left:2px solid transparent;transition:all 0.1s;user-select:none;}
-  .city-nav-item:hover{color:var(--text);background:var(--bg2);}
-  .city-nav-item.active{color:var(--green);border-left-color:var(--green);background:var(--green-bg);}
-  .city-dot{width:5px;height:5px;border-radius:50%;background:var(--text3);flex-shrink:0;transition:background 0.1s;}
-  .city-nav-item.active .city-dot{background:var(--green);}
-  .city-nav-item.has-data .city-dot{background:var(--blue);}
-  .city-nav-item.active .city-dot{background:var(--green);}
-  .city-label{flex:1;}
-  .city-count{font-size:9px;color:var(--text3);background:var(--bg3);border:1px solid var(--border);padding:1px 5px;border-radius:3px;}
-  .city-nav-item.active .city-count{color:var(--green);border-color:var(--green-dim);background:var(--green-bg);}
-  #sidebar-footer{padding:16px 20px;border-top:1px solid var(--border);font-size:10px;color:var(--text3);flex-shrink:0;}
-  #status-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--text3);margin-right:6px;vertical-align:middle;}
-  #status-dot.online{background:var(--green);box-shadow:0 0 6px var(--green);}
-  #main{margin-left:220px;flex:1;display:flex;flex-direction:column;}
-  #topbar{height:52px;background:var(--bg1);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 28px;position:sticky;top:0;z-index:10;}
-  #page-title{font-size:13px;font-weight:500;color:var(--text);}
-  #topbar-right{display:flex;align-items:center;gap:12px;}
-  .btn{font-family:var(--font);font-size:11px;padding:6px 14px;border-radius:4px;border:1px solid var(--border2);background:var(--bg2);color:var(--text2);cursor:pointer;transition:all 0.15s;}
-  .btn:hover{border-color:var(--green);color:var(--text);}
-  .btn.btn-green{background:var(--green-dim);border-color:var(--green);color:var(--green);}
-  .btn.btn-green:hover{background:var(--green);color:#000;}
-  .btn.btn-red{background:var(--red-dim);border-color:var(--red);color:var(--red);}
-  .btn.btn-red:hover{background:var(--red);color:#000;}
-  .btn:disabled{opacity:0.4;cursor:not-allowed;}
-  #content{padding:28px;flex:1;}
-  .page{display:none;}
-  .page.active{display:block;}
-  .card{background:var(--bg1);border:1px solid var(--border);border-radius:6px;padding:20px;margin-bottom:16px;}
-  .card-title{font-size:11px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:16px;}
-  .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
-  .stat-card{background:var(--bg1);border:1px solid var(--border);border-radius:6px;padding:16px 20px;}
-  .stat-label{font-size:10px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;}
-  .stat-value{font-size:28px;font-weight:700;color:var(--text);line-height:1;}
-  .stat-value.green{color:var(--green);}
-  .stat-value.blue{color:var(--blue);}
-  .stat-value.amber{color:var(--amber);}
-  .tbl{width:100%;border-collapse:collapse;font-size:12px;}
-  .tbl th{text-align:left;padding:8px 12px;font-size:10px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;border-bottom:1px solid var(--border);font-weight:400;}
-  .tbl td{padding:9px 12px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:top;}
-  .tbl tr:last-child td{border-bottom:none;}
-  .tbl tr:hover td{background:var(--bg2);}
-  .tbl .dim{color:var(--text3);}
-  .badge{display:inline-block;font-size:10px;padding:2px 7px;border-radius:3px;font-weight:400;}
-  .badge-green{background:var(--green-bg);color:var(--green);border:1px solid var(--green-dim);}
-  .badge-red{background:var(--red-dim);color:var(--red);border:1px solid #5a2a2a;}
-  .badge-blue{background:var(--blue-dim);color:var(--blue);border:1px solid #2a4a6a;}
-  .badge-amber{background:var(--amber-dim);color:var(--amber);border:1px solid #5a4a1a;}
-  .badge-gray{background:var(--bg3);color:var(--text3);border:1px solid var(--border);}
-  .allergen-pill{display:inline-block;font-size:9px;padding:1px 5px;border-radius:3px;background:var(--bg3);border:1px solid var(--border2);color:var(--text2);margin:1px;cursor:default;}
-  .allergen-pill:hover{background:var(--amber-dim);color:var(--amber);border-color:#5a4a1a;}
-  .nutr-pill{display:inline-block;font-size:9px;padding:1px 5px;border-radius:3px;background:var(--bg3);border:1px solid var(--border2);color:#6a9a6a;margin:1px;}
-  .nutr-kcal{background:var(--red-dim);border-color:#5a2a2a;color:var(--red);}
-  .rest-block{background:var(--bg1);border:1px solid var(--border);border-radius:6px;margin-bottom:10px;overflow:hidden;}
-  .rest-header{display:flex;align-items:center;gap:12px;padding:12px 16px;cursor:pointer;user-select:none;transition:background 0.1s;}
-  .rest-header:hover{background:var(--bg2);}
-  .rest-name{font-size:14px;color:#eee;font-weight:500;flex:1;}
-  .rest-info{font-size:11px;color:#6a8a6a;background:var(--green-bg);border-top:1px solid var(--border);padding:8px 16px;}
-  .rest-body{display:none;padding:0 16px 16px;}
-  .rest-body.open{display:block;}
-  .menu-tbl{width:100%;border-collapse:collapse;font-size:11px;margin-top:8px;}
-  .menu-tbl th{text-align:left;padding:6px 8px;font-size:9px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;border-bottom:1px solid var(--border);font-weight:400;}
-  .menu-tbl td{padding:7px 8px;border-bottom:1px solid var(--border);vertical-align:top;}
-  .menu-tbl tr:last-child td{border-bottom:none;}
-  .menu-tbl tr:hover td{background:var(--bg2);}
-  .type-soup{color:#7dd3fc;}
-  .type-main{color:var(--text);}
-  .type-dessert{color:#c4b5fd;}
-  .item-name{color:var(--text);}
-  .item-desc{font-size:10px;color:var(--text3);margin-top:2px;}
-  .item-nutrition{display:flex;gap:4px;flex-wrap:wrap;margin-top:3px;}
-  .toolbar{display:flex;gap:10px;align-items:center;margin-bottom:16px;flex-wrap:wrap;}
-  .toolbar input[type=text]{background:var(--bg2);border:1px solid var(--border2);color:var(--text);padding:6px 10px;font-family:var(--font);font-size:12px;border-radius:4px;width:240px;outline:none;}
-  .toolbar input[type=text]:focus{border-color:var(--green);}
-  .filter-btn{font-family:var(--font);font-size:11px;padding:5px 12px;border-radius:4px;border:1px solid var(--border2);background:var(--bg2);color:var(--text2);cursor:pointer;transition:all 0.1s;}
-  .filter-btn:hover{border-color:var(--green);color:var(--text);}
-  .filter-btn.active{background:var(--green-dim);border-color:var(--green);color:var(--green);}
-  .form-group{margin-bottom:14px;}
-  .form-label{font-size:11px;color:var(--text2);margin-bottom:6px;display:block;}
-  .form-input{width:100%;background:var(--bg2);border:1px solid var(--border2);color:var(--text);padding:8px 12px;font-family:var(--font);font-size:12px;border-radius:4px;outline:none;}
-  .form-input:focus{border-color:var(--green);}
-  #toast{position:fixed;bottom:24px;right:24px;background:var(--bg2);border:1px solid var(--border2);border-radius:6px;padding:12px 18px;font-size:12px;color:var(--text);z-index:9999;transform:translateY(20px);opacity:0;transition:all 0.2s;max-width:320px;}
-  #toast.show{transform:translateY(0);opacity:1;}
-  #toast.green{border-color:var(--green);color:var(--green);}
-  #toast.red{border-color:var(--red);color:var(--red);}
-  .log-box{background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:12px;font-size:11px;color:var(--green);min-height:120px;max-height:300px;overflow-y:auto;white-space:pre-wrap;word-break:break-all;}
-  .log-err{color:var(--red);}
-  #modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:100;align-items:center;justify-content:center;}
-  #modal-overlay.open{display:flex;}
-  #modal{background:var(--bg1);border:1px solid var(--border2);border-radius:8px;padding:24px;width:420px;max-width:90vw;}
-  #modal h3{font-size:14px;margin-bottom:16px;color:var(--text);}
-  #modal .modal-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:20px;}
-  .key-reveal{background:var(--bg);border:1px solid var(--green-dim);border-radius:4px;padding:10px 14px;font-size:12px;color:var(--green);word-break:break-all;margin-top:8px;display:flex;align-items:center;gap:10px;}
-  .key-reveal span{flex:1;}
-  .empty{color:var(--text3);font-size:12px;padding:24px;text-align:center;}
-  @keyframes spin{to{transform:rotate(360deg);}}
-  .spinner{display:inline-block;width:12px;height:12px;border:2px solid var(--border2);border-top-color:var(--green);border-radius:50%;animation:spin 0.6s linear infinite;vertical-align:middle;margin-right:6px;}
-  #key-gate{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:200;align-items:center;justify-content:center;}
-  #key-gate.show{display:flex;}
-  #key-gate-box{background:var(--bg1);border:1px solid var(--border2);border-radius:8px;padding:32px;width:380px;max-width:90vw;}
+/* ── reset + brand tokens ───────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  /* brand palette */
+  --forest-mint:   #34C471;
+  --midnight-navy: #1A1A2E;
+  --carbon-slate:  #2D2D44;
+  --deep-forest:   #111A12;
+  --warm-sand:     #F9F6F0;
+
+  /* derived surfaces */
+  --bg:       var(--midnight-navy);
+  --bg1:      #1f1f35;
+  --bg2:      var(--carbon-slate);
+  --bg3:      #363650;
+  --border:   #2e2e4a;
+  --border2:  #3a3a58;
+
+  /* text */
+  --tx:    #e8e8f4;
+  --tx2:   #9090b0;
+  --tx3:   #505070;
+
+  /* accents */
+  --green:      var(--forest-mint);
+  --green-dim:  #0e2e1e;
+  --green-mid:  #1a4a2a;
+  --red:        #e05c6c;
+  --red-dim:    #2e0e14;
+  --amber:      #e0b040;
+  --amber-dim:  #2e2008;
+  --blue:       #5090e0;
+  --blue-dim:   #0e1e38;
+  --cyan:       #30d0b8;
+
+  /* typography */
+  --font-head: 'Patrick Hand', cursive;
+  --font-body: 'Poppins', sans-serif;
+
+  --radius: 6px;
+}
+
+html, body { height: 100%; overflow: hidden; }
+body {
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--tx);
+  font-size: 13px;
+  display: flex;
+}
+
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+/* ── sidebar ────────────────────────────────────────────────────────────── */
+#sidebar {
+  width: 210px; flex-shrink: 0;
+  background: var(--deep-forest);
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  position: fixed; top: 0; left: 0; bottom: 0;
+  overflow-y: auto; z-index: 50;
+}
+
+#logo {
+  padding: 18px 16px 14px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 10px;
+}
+.logo-text {
+  font-family: var(--font-head);
+  font-size: 22px; color: var(--green);
+  letter-spacing: 0.5px; line-height: 1;
+}
+.logo-badge {
+  font-family: var(--font-body);
+  font-size: 8px; font-weight: 500;
+  color: var(--tx3); letter-spacing: 2px;
+  text-transform: uppercase;
+  background: var(--bg2); border: 1px solid var(--border);
+  padding: 2px 6px; border-radius: 3px;
+  margin-top: 2px;
+}
+
+nav { padding: 10px 0; flex: 1; }
+.nav-group {
+  font-size: 8px; font-weight: 600;
+  color: var(--tx3); letter-spacing: 2.5px;
+  text-transform: uppercase;
+  padding: 14px 16px 5px;
+}
+
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 16px; font-size: 12px; font-weight: 400;
+  color: var(--tx2); cursor: pointer;
+  border-left: 2px solid transparent;
+  transition: all 0.12s; user-select: none;
+}
+.nav-item:hover { color: var(--tx); background: rgba(52,196,113,0.04); }
+.nav-item.active {
+  color: var(--green);
+  border-left-color: var(--green);
+  background: var(--green-dim);
+  font-weight: 500;
+}
+.nav-icon { font-size: 13px; width: 16px; text-align: center; flex-shrink: 0; }
+
+.city-nav {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 16px 6px 28px; font-size: 11px;
+  color: var(--tx3); cursor: pointer;
+  border-left: 2px solid transparent;
+  transition: all 0.12s;
+}
+.city-nav:hover { color: var(--tx); background: rgba(52,196,113,0.04); }
+.city-nav.active { color: var(--green); border-left-color: var(--green); background: var(--green-dim); }
+.city-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--tx3); flex-shrink: 0; }
+.city-nav.has-data .city-dot { background: var(--green); box-shadow: 0 0 4px var(--green); }
+.city-badge { margin-left: auto; font-size: 9px; background: var(--bg2); border: 1px solid var(--border); color: var(--tx3); padding: 1px 5px; border-radius: 3px; }
+
+#sidebar-foot {
+  padding: 12px 16px; border-top: 1px solid var(--border);
+  display: flex; align-items: center; gap: 8px;
+  font-size: 10px; color: var(--tx3);
+}
+.status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--tx3); flex-shrink: 0; transition: all 0.3s; }
+.status-dot.online { background: var(--green); box-shadow: 0 0 6px var(--green); }
+
+/* ── main ───────────────────────────────────────────────────────────────── */
+#main { margin-left: 210px; flex: 1; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+
+#topbar {
+  height: 48px; flex-shrink: 0;
+  background: var(--deep-forest); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 22px;
+}
+.topbar-title {
+  font-family: var(--font-head);
+  font-size: 16px; color: var(--tx);
+  letter-spacing: 0.3px;
+}
+.topbar-right { display: flex; align-items: center; gap: 10px; }
+.topbar-meta { font-size: 10px; color: var(--tx3); }
+
+#content { flex: 1; overflow-y: auto; padding: 22px; }
+
+/* ── buttons ────────────────────────────────────────────────────────────── */
+.btn {
+  font-family: var(--font-body); font-size: 11px; font-weight: 500;
+  padding: 6px 14px; border-radius: var(--radius);
+  border: 1px solid var(--border2); background: var(--bg2);
+  color: var(--tx2); cursor: pointer; transition: all 0.12s;
+  white-space: nowrap; line-height: 1;
+}
+.btn:hover { border-color: var(--green); color: var(--tx); }
+.btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.btn-primary {
+  background: var(--green-dim); border-color: var(--green);
+  color: var(--green);
+}
+.btn-primary:hover { background: var(--green); color: var(--midnight-navy); }
+.btn-danger { background: var(--red-dim); border-color: var(--red); color: var(--red); }
+.btn-danger:hover { background: var(--red); color: #fff; }
+.btn-sm { padding: 4px 10px; font-size: 10px; }
+.btn-xs { padding: 2px 7px; font-size: 9px; }
+
+/* ── cards ──────────────────────────────────────────────────────────────── */
+.card {
+  background: var(--bg1); border: 1px solid var(--border);
+  border-radius: var(--radius); margin-bottom: 14px; overflow: hidden;
+}
+.card-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 16px; border-bottom: 1px solid var(--border);
+  font-size: 10px; font-weight: 600; color: var(--tx3);
+  letter-spacing: 1.5px; text-transform: uppercase;
+}
+.card-head-actions { display: flex; gap: 6px; align-items: center; }
+.card-body { padding: 16px; }
+
+/* ── stat widgets ───────────────────────────────────────────────────────── */
+.stat-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+.stat-card {
+  background: var(--bg1); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 16px 18px;
+  transition: border-color 0.15s;
+}
+.stat-card:hover { border-color: var(--border2); }
+.stat-label { font-size: 9px; font-weight: 600; color: var(--tx3); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 8px; }
+.stat-val { font-size: 28px; font-weight: 600; line-height: 1; font-family: var(--font-head); }
+.stat-val.green { color: var(--green); }
+.stat-val.blue  { color: var(--blue); }
+.stat-val.amber { color: var(--amber); }
+.stat-val.red   { color: var(--red); }
+.stat-sub { font-size: 9px; color: var(--tx3); margin-top: 4px; }
+
+/* ── tables ─────────────────────────────────────────────────────────────── */
+.tbl { width: 100%; border-collapse: collapse; font-size: 12px; }
+.tbl th {
+  text-align: left; padding: 8px 12px;
+  font-size: 9px; font-weight: 600; color: var(--tx3);
+  letter-spacing: 1.5px; text-transform: uppercase;
+  border-bottom: 1px solid var(--border);
+}
+.tbl td { padding: 9px 12px; border-bottom: 1px solid var(--border); color: var(--tx); vertical-align: top; }
+.tbl tr:last-child td { border-bottom: none; }
+.tbl tbody tr:hover td { background: rgba(52,196,113,0.03); }
+.tbl .muted { color: var(--tx3); font-size: 11px; }
+
+/* ── tags/pills ─────────────────────────────────────────────────────────── */
+.pill {
+  display: inline-block; font-size: 9px; font-weight: 500;
+  padding: 2px 7px; border-radius: 4px; border: 1px solid;
+  margin: 1px; line-height: 1.4;
+}
+.pill-green  { background: var(--green-dim); color: var(--green);  border-color: var(--green-mid); }
+.pill-red    { background: var(--red-dim);   color: var(--red);    border-color: #5a1a22; }
+.pill-blue   { background: var(--blue-dim);  color: var(--blue);   border-color: #1a3050; }
+.pill-amber  { background: var(--amber-dim); color: var(--amber);  border-color: #503a10; }
+.pill-gray   { background: var(--bg2);       color: var(--tx3);    border-color: var(--border2); }
+.pill-cyan   { background: #091e1c;          color: var(--cyan);   border-color: #103830; }
+.pill-round  { border-radius: 20px; }
+
+/* ── food tags (cyan round) ─────────────────────────────────────────────── */
+.ftag { display: inline-block; font-size: 9px; padding: 2px 7px; border-radius: 20px; background: #091e1c; border: 1px solid #103830; color: var(--cyan); margin: 1px; }
+
+/* ── allergens ──────────────────────────────────────────────────────────── */
+.alg { display: inline-block; font-size: 9px; padding: 1px 5px; border-radius: 3px; background: var(--bg2); border: 1px solid var(--border2); color: var(--tx2); margin: 1px; cursor: default; }
+.alg:hover { background: var(--amber-dim); color: var(--amber); border-color: #503a10; }
+
+/* ── macros ─────────────────────────────────────────────────────────────── */
+.macro { display: inline-block; font-size: 9px; padding: 1px 5px; border-radius: 3px; background: var(--bg2); border: 1px solid var(--border); color: var(--tx2); margin: 1px; }
+.macro-kcal { color: var(--red); border-color: #3a1020; }
+
+/* ── inputs ─────────────────────────────────────────────────────────────── */
+.input {
+  background: var(--bg2); border: 1px solid var(--border2);
+  color: var(--tx); padding: 7px 11px;
+  font-family: var(--font-body); font-size: 12px;
+  border-radius: var(--radius); outline: none; width: 100%;
+}
+.input:focus { border-color: var(--green); }
+.input::placeholder { color: var(--tx3); }
+.input-sm { padding: 5px 9px; font-size: 11px; }
+select.input option { background: var(--bg2); }
+
+/* ── toolbar ────────────────────────────────────────────────────────────── */
+.toolbar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 14px; }
+.filter-btn {
+  font-family: var(--font-body); font-size: 11px; font-weight: 500;
+  padding: 5px 12px; border-radius: var(--radius);
+  border: 1px solid var(--border2); background: var(--bg2);
+  color: var(--tx2); cursor: pointer; transition: all 0.1s;
+}
+.filter-btn:hover { border-color: var(--green); color: var(--tx); }
+.filter-btn.on { background: var(--green-dim); border-color: var(--green); color: var(--green); }
+
+/* ── accordion (restaurants) ────────────────────────────────────────────── */
+.rest-block { border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 10px; overflow: hidden; }
+.rest-head {
+  display: flex; align-items: center; gap: 10px;
+  padding: 11px 16px; cursor: pointer;
+  transition: background 0.1s; user-select: none;
+}
+.rest-head:hover { background: rgba(52,196,113,0.04); }
+.rest-name { font-size: 13px; font-weight: 600; color: var(--tx); flex: 1; font-family: var(--font-head); }
+.rest-sub { font-size: 9px; color: var(--tx3); background: var(--green-dim); border-top: 1px solid var(--border); padding: 4px 16px; }
+.rest-body { display: none; padding: 0 16px 14px; }
+.rest-body.open { display: block; }
+.chevron { font-size: 10px; color: var(--tx3); transition: transform 0.2s; }
+.rest-head.open .chevron { transform: rotate(180deg); }
+
+/* ── menu table inside restaurant ───────────────────────────────────────── */
+.menu-tbl { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 8px; }
+.menu-tbl th { text-align: left; padding: 5px 10px; font-size: 8px; color: var(--tx3); letter-spacing: 1px; text-transform: uppercase; border-bottom: 1px solid var(--border); font-weight: 600; }
+.menu-tbl td { padding: 7px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+.menu-tbl tr:last-child td { border-bottom: none; }
+.menu-tbl tr:hover td { background: rgba(52,196,113,0.03); }
+.t-soup    { color: #7dd3fc; font-weight: 500; }
+.t-main    { color: var(--tx); }
+.t-dessert { color: #c4b5fd; font-weight: 500; }
+
+/* ── day tabs ───────────────────────────────────────────────────────────── */
+.day-tab {
+  font-family: var(--font-body); font-size: 10px; font-weight: 500;
+  padding: 6px 12px; border-radius: var(--radius);
+  border: 1px solid var(--border2); background: var(--bg2);
+  color: var(--tx2); cursor: pointer; position: relative;
+  line-height: 1.3; min-width: 48px; text-align: center;
+  transition: all 0.1s;
+}
+.day-tab:hover { border-color: var(--green); color: var(--tx); }
+.day-tab.on { background: var(--green-dim); border-color: var(--green); color: var(--green); }
+.day-data-dot { position: absolute; top: 4px; right: 4px; width: 4px; height: 4px; border-radius: 50%; background: var(--blue); }
+.day-today-dot { position: absolute; top: 4px; left: 4px; width: 4px; height: 4px; border-radius: 50%; background: var(--green); }
+
+/* ── log box ────────────────────────────────────────────────────────────── */
+.log-box {
+  background: var(--deep-forest); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 12px;
+  font-size: 11px; color: var(--green);
+  min-height: 100px; max-height: 260px; overflow-y: auto;
+  white-space: pre-wrap; word-break: break-all; line-height: 1.6;
+  font-family: 'Courier New', monospace;
+}
+
+/* ── checkboxes (day selector) ──────────────────────────────────────────── */
+.day-check-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+.day-check {
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 12px; border-radius: var(--radius);
+  border: 1px solid var(--border2); background: var(--bg2);
+  color: var(--tx2); cursor: pointer; font-size: 11px;
+  transition: all 0.1s; user-select: none;
+}
+.day-check:hover { border-color: var(--green); color: var(--tx); }
+.day-check.on { background: var(--green-dim); border-color: var(--green); color: var(--green); }
+.day-check input { display: none; }
+
+/* ── modal ──────────────────────────────────────────────────────────────── */
+.modal-bg {
+  display: none; position: fixed; inset: 0;
+  background: rgba(10,10,20,0.85); z-index: 100;
+  align-items: center; justify-content: center;
+  backdrop-filter: blur(4px);
+}
+.modal-bg.open { display: flex; }
+.modal-box {
+  background: var(--bg1); border: 1px solid var(--border2);
+  border-radius: var(--radius); padding: 24px;
+  width: 480px; max-width: 94vw; max-height: 84vh; overflow-y: auto;
+}
+.modal-title { font-family: var(--font-head); font-size: 17px; margin-bottom: 18px; color: var(--tx); }
+.modal-foot { display: flex; gap: 8px; justify-content: flex-end; margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border); }
+
+/* ── form ───────────────────────────────────────────────────────────────── */
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+.form-field { display: flex; flex-direction: column; gap: 5px; }
+.form-label { font-size: 9px; font-weight: 600; color: var(--tx3); letter-spacing: 1px; text-transform: uppercase; }
+.form-check { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--tx2); cursor: pointer; }
+.form-check input[type=checkbox] { accent-color: var(--green); width: 14px; height: 14px; }
+.toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); }
+.toggle-row:last-child { border-bottom: none; }
+.toggle-label { font-size: 12px; color: var(--tx); }
+.toggle-sub { font-size: 10px; color: var(--tx3); }
+
+/* ── gate ───────────────────────────────────────────────────────────────── */
+#gate {
+  display: none; position: fixed; inset: 0;
+  background: rgba(8,10,20,0.97); z-index: 200;
+  align-items: center; justify-content: center;
+}
+#gate.open { display: flex; }
+.gate-box {
+  background: var(--bg1); border: 1px solid var(--border2);
+  border-radius: var(--radius); padding: 32px; width: 360px;
+  max-width: 94vw;
+}
+.gate-logo { font-family: var(--font-head); font-size: 28px; color: var(--green); margin-bottom: 2px; }
+.gate-sub { font-size: 11px; color: var(--tx3); margin-bottom: 26px; }
+.gate-err { font-size: 11px; color: var(--red); min-height: 18px; margin-bottom: 14px; }
+
+/* ── toast ──────────────────────────────────────────────────────────────── */
+#toast {
+  position: fixed; bottom: 20px; right: 20px; max-width: 300px;
+  background: var(--bg2); border: 1px solid var(--border2);
+  border-radius: var(--radius); padding: 10px 16px;
+  font-size: 12px; color: var(--tx);
+  transform: translateY(10px); opacity: 0;
+  transition: all 0.18s; z-index: 999; pointer-events: none;
+}
+#toast.show { transform: translateY(0); opacity: 1; }
+#toast.ok  { border-color: var(--green); color: var(--green); }
+#toast.err { border-color: var(--red);   color: var(--red); }
+
+/* ── spinner ────────────────────────────────────────────────────────────── */
+@keyframes spin { to { transform: rotate(360deg); } }
+.spin { display: inline-block; width: 11px; height: 11px; border: 1.5px solid var(--border2); border-top-color: var(--green); border-radius: 50%; animation: spin 0.6s linear infinite; vertical-align: middle; margin-right: 5px; }
+
+.empty { font-size: 11px; color: var(--tx3); padding: 24px; text-align: center; }
+.divider { font-size: 8px; font-weight: 600; color: var(--tx3); letter-spacing: 2px; text-transform: uppercase; padding: 12px 0 6px; border-bottom: 1px solid var(--border); margin-bottom: 10px; }
+.sys-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 12px; }
+.sys-row:last-child { border-bottom: none; }
+.sys-key { color: var(--tx3); }
+.sys-val { color: var(--tx); font-weight: 500; }
+.key-reveal { background: var(--deep-forest); border: 1px solid var(--green); border-radius: var(--radius); padding: 10px 12px; font-size: 11px; color: var(--green); word-break: break-all; margin-top: 10px; display: flex; align-items: center; gap: 10px; }
+.key-reveal span { flex: 1; font-family: 'Courier New', monospace; }
+
+/* ── health cards ───────────────────────────────────────────────────────── */
+.health-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 14px; }
+.health-card { background: var(--bg1); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; }
+.health-label { font-size: 9px; font-weight: 600; color: var(--tx3); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 6px; }
+.health-val { font-size: 24px; font-weight: 600; font-family: var(--font-head); }
+.health-val.ok   { color: var(--green); }
+.health-val.warn { color: var(--amber); }
+.health-val.bad  { color: var(--red); }
+.health-sub { font-size: 9px; color: var(--tx3); margin-top: 3px; }
+
+/* ── tag grid (visualizer) ──────────────────────────────────────────────── */
+.tag-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+.tag-card {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--bg2); border: 1px solid var(--border2);
+  border-radius: var(--radius); padding: 5px 10px;
+  font-size: 11px; cursor: pointer; transition: border-color 0.1s;
+}
+.tag-card:hover { border-color: var(--cyan); }
+.tag-card-name { color: var(--cyan); font-weight: 500; }
+.tag-card-count { color: var(--tx3); font-size: 10px; }
+
+/* ── bug triage ─────────────────────────────────────────────────────────── */
+.bug-row { padding: 12px 16px; border-bottom: 1px solid var(--border); }
+.bug-row:last-child { border-bottom: none; }
+.bug-row.urgent { border-left: 3px solid var(--red); }
+.bug-row.open   { border-left: 3px solid var(--amber); }
+.bug-row.resolved { border-left: 3px solid var(--green); opacity: 0.6; }
+.bug-type { font-size: 10px; font-weight: 600; color: var(--tx3); letter-spacing: 1px; text-transform: uppercase; }
+.bug-meta { font-size: 10px; color: var(--tx3); margin-top: 2px; }
+.bug-desc { font-size: 11px; color: var(--tx2); margin-top: 4px; font-style: italic; }
+
+/* ── ML tester ──────────────────────────────────────────────────────────── */
+.test-item { background: var(--bg2); border: 1px solid var(--border2); border-radius: var(--radius); padding: 12px 14px; margin-bottom: 8px; }
+.test-item.pass  { border-left: 3px solid var(--green); }
+.test-item.fail  { border-left: 3px solid var(--red); }
+.test-item.mixed { border-left: 3px solid var(--amber); }
+.test-name { font-size: 12px; font-weight: 500; margin-bottom: 6px; }
+.pill-group { display: flex; flex-wrap: wrap; gap: 3px; margin-top: 4px; }
+
+/* ── cron editor ────────────────────────────────────────────────────────── */
+.cron-fields { display: flex; gap: 10px; margin: 14px 0; }
+.cron-field { text-align: center; min-width: 48px; }
+.cron-field-val { font-size: 18px; font-weight: 600; color: var(--green); font-family: var(--font-head); }
+.cron-field-lbl { font-size: 9px; color: var(--tx3); text-transform: uppercase; letter-spacing: 0.5px; }
+.cron-preset { width: 100%; text-align: left; margin-bottom: 6px; font-family: var(--font-body); font-size: 11px; }
+
+/* ── feed preview ───────────────────────────────────────────────────────── */
+.feed-card {
+  background: var(--carbon-slate); border: 1px solid var(--border2);
+  border-radius: 12px; padding: 18px; margin-bottom: 10px;
+  transition: border-color 0.15s;
+}
+.feed-card:hover { border-color: var(--green); }
+.feed-dish { font-family: var(--font-head); font-size: 16px; color: var(--tx); margin-bottom: 4px; }
+.feed-rest { font-size: 11px; color: var(--tx3); }
+.feed-price { font-size: 15px; font-weight: 600; color: var(--green); margin-top: 8px; }
+.feed-tags { margin-top: 8px; }
+
+/* ── score display ──────────────────────────────────────────────────────── */
+.score-big { font-family: var(--font-head); font-size: 56px; font-weight: 400; line-height: 1; }
+.score-bar-wrap { background: var(--bg2); border-radius: 3px; height: 6px; margin: 10px 0; overflow: hidden; }
+.score-bar { height: 100%; border-radius: 3px; transition: width 0.8s ease; background: var(--green); }
+
+/* ── tabs (ML sub-tabs) ─────────────────────────────────────────────────── */
+.tab-bar { display: flex; border-bottom: 1px solid var(--border); margin-bottom: 18px; }
+.tab-btn { padding: 9px 18px; font-size: 12px; font-weight: 500; cursor: pointer; color: var(--tx2); border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.1s; background: none; border-top: none; border-left: none; border-right: none; font-family: var(--font-body); }
+.tab-btn:hover { color: var(--tx); }
+.tab-btn.on { color: var(--green); border-bottom-color: var(--green); }
+.tab-pane { display: none; }
+.tab-pane.on { display: block; }
+
+/* ── ntfy config ────────────────────────────────────────────────────────── */
+.ntfy-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+
+/* ── map placeholder ────────────────────────────────────────────────────── */
+#sk-map { width: 100%; height: 260px; border-radius: var(--radius); border: 1px solid var(--border); overflow: hidden; background: var(--bg2); position: relative; }
+
+/* ── Leaflet overrides ──────────────────────────────────────────────────── */
+.leaflet-container { background: var(--bg2) !important; }
+.leaflet-tile-pane { filter: brightness(0.4) saturate(0.3) hue-rotate(120deg); }
+.leaflet-popup-content-wrapper { background: var(--bg1); border: 1px solid var(--border2); color: var(--tx); border-radius: var(--radius); }
+.leaflet-popup-tip { background: var(--bg1); }
+
+/* ── bulk editor clickable rows ─────────────────────────────────────────── */
+.bulk-row {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 8px 10px; border-radius: var(--radius); margin-bottom: 4px;
+  cursor: pointer; border: 1px solid var(--border2); background: var(--bg2);
+  transition: border-color 0.1s, background 0.1s; user-select: none;
+}
+.bulk-row:hover { border-color: var(--green); background: rgba(52,196,113,0.05); }
+.bulk-row.selected { background: var(--green-dim); border-color: var(--green-mid); }
+.bulk-row.trained { border-left: 3px solid var(--cyan); }
+.bulk-row.trained.selected { border-left: 3px solid var(--cyan); }
+
+/* ── tag bar rows in stats ───────────────────────────────────────────────── */
+.tag-bar-row {
+  display: flex; align-items: center; gap: 10px;
+  cursor: pointer; padding: 5px 8px; border-radius: 4px;
+  border: 1px solid transparent; transition: border-color 0.1s, background 0.1s;
+}
+.tag-bar-row:hover { background: var(--bg2); border-color: var(--border2); }
+.tag-bar-row.active { background: var(--bg2); border-color: var(--border2); }
+
+/* ── sticky tag panel at top of bulk editor ──────────────────────────────── */
+.bulk-tag-panel {
+  position: sticky; top: 0; z-index: 10;
+  background: var(--bg1); border: 1px solid var(--border2);
+  border-radius: var(--radius); margin-bottom: 12px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+}
+
+/* ── bulk editor day selector ────────────────────────────────────────────── */
+.bulk-day-tabs { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 12px; }
+
 </style>
 </head>
 <body>
 
-<aside id="sidebar">
-  <div id="logo">
-    <div class="logo-text">ToMenu</div>
-    <div class="logo-sub" data-i18n="sidebar.sub">admin dashboard</div>
-  </div>
-  <nav>
-    <div class="nav-section" data-i18n="nav.data">data</div>
-    <div class="nav-item active" data-page="overview" data-i18n="nav.overview"><span class="icon">◈</span> Overview</div>
-    <div id="cities-nav"></div>
-    <div class="nav-section" data-i18n="nav.browse">browse</div>
-    <div class="nav-item" data-page="restaurants" data-i18n="nav.restaurants"><span class="icon">⌂</span> All Restaurants</div>
-    <div class="nav-section" data-i18n="nav.system">system</div>
-    <div class="nav-item" data-page="scraper" data-i18n="nav.scraper"><span class="icon">↻</span> Scraper</div>
-    <div class="nav-item" data-page="apikeys" data-i18n="nav.apikeys"><span class="icon">⚿</span> API Keys</div>
-  </nav>
-  <div id="sidebar-footer">
-    <span id="status-dot"></span>
-    <span id="status-text">connecting...</span>
-  </div>
-</aside>
-
-<div id="main">
-  <div id="topbar">
-    <span id="page-title">Overview</span>
-    <div id="topbar-right">
-      <span id="topbar-date" style="font-size:11px;color:var(--text3)"></span>
-      <button class="btn" id="lang-toggle" onclick="toggleLang()" style="font-size:10px;padding:4px 10px;letter-spacing:1px;">EN</button>
-      <button class="btn btn-green" onclick="triggerScrape(this)" id="btn-scrape">↻ Run scraper</button>
+<!-- ── KEY GATE ─────────────────────────────────────────────────────────── -->
+<div id="gate" :class="{ open: !authed }">
+  <div class="gate-box">
+    <div class="gate-logo">ToMenu</div>
+    <div class="gate-sub">admin dashboard — enter your API key</div>
+    <div class="form-field" style="margin-bottom:10px">
+      <label class="form-label">API Key</label>
+      <input class="input" type="password" x-model="gateKey" @keydown.enter="submitKey()" placeholder="paste key here" autocomplete="off">
     </div>
-  </div>
-  <div id="content">
-
-    <div class="page active" id="page-overview">
-      <div class="stat-grid">
-        <div class="stat-card"><div class="stat-label" data-i18n="stat.restaurants">restaurants</div><div class="stat-value green" id="st-restaurants">—</div></div>
-        <div class="stat-card"><div class="stat-label" data-i18n="stat.items">items today</div><div class="stat-value blue" id="st-items">—</div></div>
-        <div class="stat-card"><div class="stat-label" data-i18n="stat.delivery">with delivery</div><div class="stat-value" id="st-delivery">—</div></div>
-        <div class="stat-card"><div class="stat-label" data-i18n="stat.runs">total scrape runs</div><div class="stat-value amber" id="st-runs">—</div></div>
-      </div>
-      <div class="card">
-        <div class="card-title" data-i18n="runs.title">recent scrape runs</div>
-        <table class="tbl">
-          <thead><tr><th>city</th><th>date</th><th>day</th><th>scraped at</th><th>items</th></tr></thead>
-          <tbody id="runs-body"><tr><td colspan="5" class="empty">loading...</td></tr></tbody>
-        </table>
-      </div>
-    </div>
-
-    <div class="page" id="page-menus">
-      <!-- day picker row -->
-      <div style="display:flex;gap:6px;align-items:center;margin-bottom:10px;flex-wrap:wrap;">
-        <span style="font-size:10px;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-right:4px">week</span>
-        <div id="day-tabs" style="display:flex;gap:4px;flex-wrap:wrap;"></div>
-      </div>
-      <div class="toolbar">
-        <input type="text" id="menu-search" placeholder="search dishes..." data-i18n="menus.search" oninput="filterMenus()">
-        <button class="filter-btn active" data-type="all" onclick="setTypeFilter(this,'all')">all</button>
-        <button class="filter-btn" data-type="soup" onclick="setTypeFilter(this,'soup')">soup</button>
-        <button class="filter-btn" data-type="main" onclick="setTypeFilter(this,'main')">main</button>
-        <button class="filter-btn" data-type="dessert" onclick="setTypeFilter(this,'dessert')">dessert</button>
-        <button class="filter-btn" id="btn-delivery" onclick="toggleDelivery()">delivery only</button>
-        <span id="menu-count" style="font-size:11px;color:var(--text3);margin-left:4px"></span>
-      </div>
-      <div id="restaurants-list"><div class="empty">pick a city from the sidebar</div></div>
-    </div>
-
-    <div class="page" id="page-restaurants">
-      <div class="card">
-        <div class="card-title">all restaurants</div>
-        <table class="tbl">
-          <thead><tr><th>name</th><th>city</th><th>address</th><th>phone</th><th>delivery</th><th>info</th></tr></thead>
-          <tbody id="rest-table-body"><tr><td colspan="6" class="empty">loading...</td></tr></tbody>
-        </table>
-      </div>
-    </div>
-
-    <div class="page" id="page-scraper">
-      <div class="card">
-        <div class="card-title">manual scrape</div>
-        <p style="font-size:12px;color:var(--text2);margin-bottom:16px">Scrapes all configured cities. Also runs automatically via cron.</p>
-        <button class="btn btn-green" onclick="triggerScrape(this)">↻ Run scraper now</button>
-        <div style="margin-top:16px">
-          <div style="font-size:10px;color:var(--text3);margin-bottom:6px;letter-spacing:1px;text-transform:uppercase">output</div>
-          <div class="log-box" id="scrape-log">waiting for run...</div>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-title">scrape history</div>
-        <table class="tbl">
-          <thead><tr><th>city</th><th>date</th><th>day</th><th>scraped at</th><th>items</th></tr></thead>
-          <tbody id="scraper-runs-body"><tr><td colspan="5" class="empty">loading...</td></tr></tbody>
-        </table>
-      </div>
-    </div>
-
-    <div class="page" id="page-apikeys">
-      <div style="display:flex;justify-content:flex-end;margin-bottom:16px">
-        <button class="btn btn-green" onclick="openNewKeyModal()">+ new key</button>
-      </div>
-      <div class="card">
-        <div class="card-title">api keys</div>
-        <table class="tbl">
-          <thead><tr><th>id</th><th>label</th><th>created</th><th>last used</th><th>status</th><th></th></tr></thead>
-          <tbody id="keys-body"><tr><td colspan="6" class="empty">loading...</td></tr></tbody>
-        </table>
-      </div>
-    </div>
-
-  </div>
-</div>
-
-<!-- api key modal -->
-<div id="modal-overlay">
-  <div id="modal">
-    <h3 data-i18n="modal.title">new API key</h3>
-    <div class="form-group">
-      <label class="form-label" data-i18n="modal.label">label</label>
-      <input class="form-input" type="text" id="key-label-input" placeholder="e.g. my phone app" data-i18n="modal.placeholder">
-    </div>
-    <div id="key-result" style="display:none">
-      <div style="font-size:11px;color:var(--amber);margin-bottom:6px">⚠ copy this now — it won't be shown again</div>
-      <div class="key-reveal"><span id="key-value"></span><button class="btn" onclick="copyKey()" style="padding:4px 8px;font-size:10px">copy</button></div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn" onclick="closeModal()">cancel</button>
-      <button class="btn btn-green" id="modal-confirm" onclick="createKey()">create</button>
-    </div>
-  </div>
-</div>
-
-<!-- key gate -->
-<div id="key-gate">
-  <div id="key-gate-box">
-    <div style="font-size:20px;font-weight:700;color:var(--green);margin-bottom:4px">ToMenu</div>
-    <div style="font-size:11px;color:var(--text3);margin-bottom:28px" data-i18n="gate.sub">Enter your API key to continue</div>
-    <div style="font-size:11px;color:var(--text2);margin-bottom:6px" data-i18n="gate.label">API Key</div>
-    <input id="gate-input" type="password" autocomplete="off"
-      style="width:100%;background:var(--bg2);border:1px solid var(--border2);color:var(--text);padding:10px 12px;font-family:var(--font);font-size:12px;border-radius:4px;outline:none;margin-bottom:8px;"
-      placeholder="paste your key here" data-i18n="gate.placeholder">
-    <div id="gate-error" style="font-size:11px;color:var(--red);min-height:18px;margin-bottom:16px"></div>
-    <button id="gate-btn" onclick="submitKey()"
-      style="width:100%;font-family:var(--font);font-size:13px;padding:11px;background:var(--green-dim);border:1px solid var(--green);color:var(--green);border-radius:4px;cursor:pointer;">
-      Connect
+    <div class="gate-err" x-text="gateErr"></div>
+    <button class="btn btn-primary" style="width:100%;padding:10px;font-size:13px;margin-top:6px" @click="submitKey()" :disabled="gateLoading">
+      <span x-show="gateLoading"><span class="spin"></span></span>
+      <span x-text="gateLoading ? 'Checking...' : 'Connect'"></span>
     </button>
   </div>
 </div>
 
+<!-- ── SIDEBAR ───────────────────────────────────────────────────────────── -->
+<aside id="sidebar">
+  <div id="logo">
+    <div>
+      <div class="logo-text">ToMenu</div>
+      <div class="logo-badge">admin</div>
+    </div>
+  </div>
+
+  <nav>
+    <div class="nav-group">dashboard</div>
+    <div class="nav-item" :class="{active: page==='overview'}" @click="nav('overview')">
+      <span class="nav-icon">◈</span> Overview
+    </div>
+    <div class="nav-item" :class="{active: page==='health'}" @click="nav('health')">
+      <span class="nav-icon">♥</span> Data Health
+    </div>
+    <div class="nav-item" :class="{active: page==='bugs'}" @click="nav('bugs')">
+      <span class="nav-icon">⚑</span> Bugs
+      <span x-show="openBugCount > 0" class="pill pill-red pill-round" style="margin-left:auto;font-size:9px" x-text="openBugCount"></span>
+    </div>
+
+    <div class="nav-group">data</div>
+    <template x-for="c in cities" :key="c.slug">
+      <div class="city-nav" :class="{active: page==='menus' && activeCity===c.slug, 'has-data': cityItemCnt[c.slug] > 0}"
+           @click="selectCity(c.slug, c.name)">
+        <span class="city-dot"></span>
+        <span x-text="c.name"></span>
+        <span class="city-badge" x-show="cityItemCnt[c.slug]" x-text="cityItemCnt[c.slug]"></span>
+      </div>
+    </template>
+
+    <div class="nav-group">tools</div>
+    <div class="nav-item" :class="{active: page==='restaurants'}" @click="nav('restaurants')">
+      <span class="nav-icon">⌂</span> Restaurants
+    </div>
+    <div class="nav-item" :class="{active: page==='ml'}" @click="nav('ml')">
+      <span class="nav-icon">◉</span> ML / Tags
+    </div>
+    <div class="nav-item" :class="{active: page==='feed'}" @click="nav('feed')">
+      <span class="nav-icon">▤</span> Feed Preview
+    </div>
+
+    <div class="nav-group">system</div>
+    <div class="nav-item" :class="{active: page==='scraper'}" @click="nav('scraper')">
+      <span class="nav-icon">↻</span> Scraper
+    </div>
+    <div class="nav-item" :class="{active: page==='keys'}" @click="nav('keys')">
+      <span class="nav-icon">⚿</span> API Keys
+    </div>
+    <div class="nav-item" :class="{active: page==='cron'}" @click="nav('cron')">
+      <span class="nav-icon">⏱</span> Cron
+    </div>
+    <div class="nav-item" :class="{active: page==='ntfy'}" @click="nav('ntfy')">
+      <span class="nav-icon">🔔</span> Notifications
+    </div>
+    <div class="nav-item" :class="{active: page==='sysinfo'}" @click="nav('sysinfo')">
+      <span class="nav-icon">≡</span> System
+    </div>
+  </nav>
+
+  <div id="sidebar-foot">
+    <span class="status-dot" :class="{online: serverOnline}"></span>
+    <span x-text="serverOnline ? 'online' : 'offline'" style="font-size:10px;color:var(--tx3)"></span>
+    <span style="margin-left:auto;font-size:9px;color:var(--tx3)" x-text="todayStr"></span>
+  </div>
+</aside>
+
+<!-- ── MAIN ──────────────────────────────────────────────────────────────── -->
+<div id="main">
+  <div id="topbar">
+    <span class="topbar-title" x-text="pageTitle"></span>
+    <div class="topbar-right">
+      <button class="btn btn-sm" @click="triggerScrape()" :disabled="scraping">
+        <span x-show="scraping"><span class="spin"></span></span>
+        <span x-text="scraping ? 'scraping...' : '↻ scrape today'"></span>
+      </button>
+    </div>
+  </div>
+
+  <div id="content">
+
+    <!-- ── OVERVIEW ──────────────────────────────────────────────────────── -->
+    <div x-show="page==='overview'">
+      <div class="stat-row">
+        <div class="stat-card">
+          <div class="stat-label">restaurants</div>
+          <div class="stat-val green" x-text="stats.restaurants ?? '—'"></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">items today</div>
+          <div class="stat-val blue" x-text="stats.items_today ?? '—'"></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">with delivery</div>
+          <div class="stat-val" x-text="stats.delivery ?? '—'"></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">total runs</div>
+          <div class="stat-val amber" x-text="stats.scrape_runs ?? '—'"></div>
+          <div class="stat-sub">all time</div>
+        </div>
+      </div>
+
+      <!-- Map -->
+      <div class="card">
+        <div class="card-head">
+          <span>city heatmap</span>
+          <div style="display:flex;gap:4px;align-items:center">
+            <span style="font-size:9px;color:var(--tx3);margin-right:4px">day:</span>
+            <template x-for="d in mapDayOptions" :key="d.iso">
+              <button class="btn btn-xs" :class="mapSelectedDay===d.iso?'btn-primary':''"
+                @click="mapSelectedDay=d.iso;updateMapMarkers()" x-text="d.label"></button>
+            </template>
+          </div>
+        </div>
+        <div id="sk-map"></div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+        <div class="card">
+          <div class="card-head">city breakdown</div>
+          <table class="tbl">
+            <thead><tr><th>city</th><th>restaurants</th><th>items today</th></tr></thead>
+            <tbody>
+              <template x-for="c in stats.city_breakdown ?? []" :key="c.slug">
+                <tr>
+                  <td x-text="c.name"></td>
+                  <td x-text="c.restaurant_count ?? '—'"></td>
+                  <td>
+                    <span x-show="c.items_today > 0" class="pill pill-green" x-text="c.items_today + ' items'"></span>
+                    <span x-show="!c.items_today" class="pill pill-gray">none</span>
+                  </td>
+                </tr>
+              </template>
+              <tr x-show="!stats.city_breakdown?.length"><td colspan="3" class="empty">loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card">
+          <div class="card-head">recent scrape runs</div>
+          <table class="tbl">
+            <thead><tr><th>city</th><th>date</th><th>items</th></tr></thead>
+            <tbody>
+              <template x-for="r in (stats.recent_runs ?? []).slice(0,8)" :key="r.scraped_at">
+                <tr>
+                  <td><span class="pill pill-gray" x-text="r.city_name"></span></td>
+                  <td class="muted" x-text="r.date"></td>
+                  <td><span class="pill pill-blue" x-text="r.item_count"></span></td>
+                </tr>
+              </template>
+              <tr x-show="!stats.recent_runs?.length"><td colspan="3" class="empty">no runs yet</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── DATA HEALTH ────────────────────────────────────────────────────── -->
+    <div x-show="page==='health'">
+      <div class="health-grid">
+        <div class="health-card">
+          <div class="health-label">items today</div>
+          <div class="health-val" :class="stats.items_today > 0 ? 'ok' : 'bad'" x-text="stats.items_today ?? '—'"></div>
+          <div class="health-sub">across all cities</div>
+        </div>
+        <div class="health-card">
+          <div class="health-label">cities with data</div>
+          <div class="health-val ok" x-text="(stats.city_breakdown ?? []).filter(c => c.items_today > 0).length + ' / ' + (stats.city_breakdown ?? []).length"></div>
+          <div class="health-sub">scraped today</div>
+        </div>
+        <div class="health-card">
+          <div class="health-label">open bugs</div>
+          <div class="health-val" :class="openBugCount > 0 ? 'warn' : 'ok'" x-text="openBugCount"></div>
+          <div class="health-sub">unresolved reports</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <span>tag coverage</span>
+          <button class="btn btn-sm" @click="loadTagHealth()">↻ check</button>
+        </div>
+        <div class="card-body">
+          <div x-show="!tagHealth" class="empty">click "check" to run coverage analysis</div>
+          <template x-if="tagHealth">
+            <div>
+              <div class="sys-row">
+                <span class="sys-key">total items</span>
+                <span class="sys-val" x-text="tagHealth.total_items"></span>
+              </div>
+              <div class="sys-row">
+                <span class="sys-key">distinct tags</span>
+                <span class="sys-val" x-text="tagHealth.tags?.length"></span>
+              </div>
+              <div class="sys-row">
+                <span class="sys-key">avg tags / item</span>
+                <span class="sys-val" x-text="tagHealth.total_items > 0 ? (tagHealth.tags?.reduce((s,t)=>s+t.count,0)/tagHealth.total_items).toFixed(1) : '—'"></span>
+              </div>
+            </div>
+          </template>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <span>api health check</span>
+          <div class="card-head-actions">
+            <span x-show="healthRunning" style="font-size:10px;color:var(--tx3)"><span class="spin"></span> running (~5s)...</span>
+            <button class="btn btn-sm" @click="runHealthCheck()" :disabled="healthRunning">↻ run checks</button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div x-show="!healthResults && !healthRunning" class="empty" style="padding:12px 0">click "run checks" to test all API endpoints</div>
+          <template x-if="healthResults">
+            <div>
+              <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px">
+                <div>
+                  <div style="font-size:32px;font-weight:600;font-family:var(--font-head)" :style="'color:' + (healthResults.total_fail===0?'var(--green)':healthResults.total_fail<5?'var(--amber)':'var(--red)')">
+                    <span x-text="healthResults.total_pass"></span>/<span x-text="healthResults.total_pass+healthResults.total_fail"></span>
+                  </div>
+                  <div style="font-size:10px;color:var(--tx3)" x-text="healthResults.total_elapsed + 's'"></div>
+                </div>
+                <div style="flex:1">
+                  <div class="score-bar-wrap">
+                    <div class="score-bar" :style="'width:' + Math.round(healthResults.total_pass/(healthResults.total_pass+healthResults.total_fail)*100) + '%;background:' + (healthResults.total_fail===0?'var(--green)':healthResults.total_fail<5?'var(--amber)':'var(--red)')"></div>
+                  </div>
+                  <div style="font-size:11px;color:var(--tx3)">
+                    <span style="color:var(--green)" x-text="healthResults.total_pass + ' passed'"></span> ·
+                    <span :style="healthResults.total_fail>0?'color:var(--red)':'color:var(--tx3)'" x-text="healthResults.total_fail + ' failed'"></span>
+                  </div>
+                </div>
+              </div>
+              <template x-for="sec in healthResults.sections" :key="sec.name">
+                <div style="margin-bottom:6px">
+                  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:3px">
+                    <span style="font-size:11px;font-weight:500" x-text="sec.name"></span>
+                    <div style="display:flex;gap:4px">
+                      <span class="pill pill-green" x-show="sec.failed===0" x-text="sec.passed + ' ✓'"></span>
+                      <span class="pill pill-red" x-show="sec.failed>0" x-text="sec.failed + ' ✗'"></span>
+                    </div>
+                  </div>
+                  <template x-for="r in sec.results.filter(r=>!r.passed)" :key="r.name">
+                    <div style="font-size:10px;color:var(--red);padding:2px 0 2px 12px;border-left:2px solid var(--red-dim)" x-text="r.name + (r.message ? ' — ' + r.message : '')"></div>
+                  </template>
+                </div>
+              </template>
+            </div>
+          </template>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head">restaurants missing data this week</div>
+        <table class="tbl">
+          <thead><tr><th>restaurant</th><th>city</th><th>last seen</th><th>active days</th></tr></thead>
+          <tbody>
+            <template x-for="r in missingRests" :key="r.id">
+              <tr>
+                <td x-text="r.name"></td>
+                <td class="muted" x-text="r.city_name"></td>
+                <td class="muted" x-text="r.last_seen || '—'"></td>
+                <td>
+                  <template x-for="d in (r.active_days ?? [])" :key="d">
+                    <span class="pill pill-gray" x-text="['Mon','Tue','Wed','Thu','Fri'][d] ?? d"></span>
+                  </template>
+                </td>
+              </tr>
+            </template>
+            <tr x-show="!missingRests.length"><td colspan="4" class="empty">all restaurants look fine</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── BUGS ───────────────────────────────────────────────────────────── -->
+    <div x-show="page==='bugs'">
+      <div class="toolbar">
+        <button class="filter-btn" :class="{on: bugFilter==='all'}"     @click="bugFilter='all';loadBugs()">All</button>
+        <button class="filter-btn" :class="{on: bugFilter==='open'}"    @click="bugFilter='open';loadBugs()">Open</button>
+        <button class="filter-btn" :class="{on: bugFilter==='urgent'}"  @click="bugFilter='urgent';loadBugs()">Urgent</button>
+        <button class="filter-btn" :class="{on: bugFilter==='resolved'}" @click="bugFilter='resolved';loadBugs()">Resolved</button>
+      </div>
+      <div class="card">
+        <div class="card-head">
+          <span>bug reports</span>
+          <span class="pill pill-amber" x-show="openBugCount > 0" x-text="openBugCount + ' open'"></span>
+        </div>
+        <div x-show="!bugs.length" class="empty">no bug reports</div>
+        <template x-for="b in bugs" :key="b.id">
+          <div class="bug-row" :class="b.status">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+              <div>
+                <span class="bug-type" x-text="b.type.replace(/_/g,' ')"></span>
+                <div class="bug-meta">
+                  <span x-text="b.restaurant_slug"></span> ·
+                  <span x-text="b.city_slug"></span> ·
+                  <span x-text="b.created_at?.slice(0,16).replace('T',' ')"></span>
+                </div>
+                <div class="bug-desc" x-show="b.description" x-text="b.description"></div>
+              </div>
+              <div style="display:flex;gap:6px;flex-shrink:0">
+                <button class="btn btn-xs btn-danger" x-show="b.status!=='urgent'" @click="patchBug(b.id,'urgent')">urgent</button>
+                <button class="btn btn-xs btn-primary" x-show="b.status!=='resolved'" @click="patchBug(b.id,'resolved')">resolve</button>
+                <button class="btn btn-xs" x-show="b.status==='resolved'" @click="patchBug(b.id,'open')">reopen</button>
+              </div>
+            </div>
+          </div>
+        </template>
+      </div>
+    </div>
+
+    <!-- ── MENUS ──────────────────────────────────────────────────────────── -->
+    <div x-show="page==='menus'">
+      <div style="display:flex;gap:6px;align-items:center;margin-bottom:12px;flex-wrap:wrap">
+        <span style="font-size:9px;font-weight:600;color:var(--tx3);letter-spacing:2px;text-transform:uppercase">week</span>
+        <div id="day-tabs" style="display:flex;gap:5px;flex-wrap:wrap"></div>
+      </div>
+      <div class="toolbar">
+        <input class="input input-sm" style="width:200px" x-model="menuSearch" @input="renderRestaurants()" placeholder="search dishes...">
+        <button class="filter-btn" :class="{on: menuType==='all'}"     @click="menuType='all';renderRestaurants()">all</button>
+        <button class="filter-btn" :class="{on: menuType==='soup'}"    @click="menuType='soup';renderRestaurants()">soup</button>
+        <button class="filter-btn" :class="{on: menuType==='main'}"    @click="menuType='main';renderRestaurants()">main</button>
+        <button class="filter-btn" :class="{on: menuType==='dessert'}" @click="menuType='dessert';renderRestaurants()">dessert</button>
+        <button class="filter-btn" :class="{on: deliveryOnly}"         @click="deliveryOnly=!deliveryOnly;renderRestaurants()">delivery only</button>
+        <span style="font-size:11px;color:var(--tx3)" x-text="menuVisible + ' restaurants'"></span>
+      </div>
+      <div id="rest-list"><div class="empty">select a city from the sidebar</div></div>
+    </div>
+
+    <!-- ── RESTAURANTS ────────────────────────────────────────────────────── -->
+    <div x-show="page==='restaurants'">
+      <div class="toolbar">
+        <input class="input input-sm" style="width:220px" x-model="restSearch" @input="renderAllRests()" placeholder="filter by name...">
+        <button class="filter-btn" :class="{on: restFilter==='all'}"      @click="restFilter='all';renderAllRests()">all</button>
+        <button class="filter-btn" :class="{on: restFilter==='delivery'}" @click="restFilter='delivery';renderAllRests()">delivery</button>
+        <button class="filter-btn" :class="{on: restFilter==='verified'}" @click="restFilter='verified';renderAllRests()">verified</button>
+      </div>
+      <div class="card">
+        <div class="card-head">
+          <span>all restaurants</span>
+          <span class="pill pill-gray" x-text="filteredRests.length + ' shown'"></span>
+        </div>
+        <table class="tbl">
+          <thead><tr><th>name</th><th>city</th><th>delivery</th><th>verified</th><th>active days</th><th>last seen</th></tr></thead>
+          <tbody>
+            <template x-for="r in filteredRests" :key="r.id">
+              <tr>
+                <td>
+                  <div style="font-weight:600" x-text="r.name"></div>
+                  <div class="muted" x-text="r.slug"></div>
+                </td>
+                <td><span class="pill pill-gray" x-text="r.city_name || r.city_slug || '—'"></span></td>
+                <td><span class="pill" :class="r.delivery ? 'pill-cyan' : 'pill-gray'" x-text="r.delivery ? 'yes' : 'no'"></span></td>
+                <td><span class="pill" :class="r.verified ? 'pill-green' : 'pill-gray'" x-text="r.verified ? '✓' : '—'"></span></td>
+                <td>
+                  <template x-for="d in (r.active_days ?? [])" :key="d">
+                    <span class="pill pill-gray" x-text="['Mon','Tue','Wed','Thu','Fri'][d] ?? d"></span>
+                  </template>
+                </td>
+                <td class="muted" x-text="r.last_seen || '—'"></td>
+              </tr>
+            </template>
+            <tr x-show="!filteredRests.length"><td colspan="6" class="empty">no restaurants</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── ML / TAGS ──────────────────────────────────────────────────────── -->
+    <div x-show="page==='ml'">
+      <div class="tab-bar">
+        <button class="tab-btn" :class="{on: mlTab==='tester'}"  @click="mlTab='tester'">Tester</button>
+        <button class="tab-btn" :class="{on: mlTab==='live'}"    @click="mlTab='live'">Live Tagger</button>
+        <button class="tab-btn" :class="{on: mlTab==='stats'}"   @click="mlTab='stats';loadTagStats()">Tags &amp; Stats</button>
+        <button class="tab-btn" :class="{on: mlTab==='editor'}"  @click="mlTab='editor';bulkSearchItems()">Bulk Editor</button>
+        <button class="tab-btn" :class="{on: mlTab==='train'}"   @click="mlTab='train';loadMlStatus()">
+          Train
+          <span x-show="mlModelStatus.trained" class="pill pill-green pill-round" style="margin-left:5px;font-size:8px;padding:1px 5px">model ready</span>
+          <span x-show="mlModelStatus.trained===false" class="pill pill-amber pill-round" style="margin-left:5px;font-size:8px;padding:1px 5px">untrained</span>
+        </button>
+      </div>
+
+      <!-- Tester -->
+      <div class="tab-pane" :class="{on: mlTab==='tester'}">
+        <div class="card" style="padding:20px">
+          <div style="display:flex;align-items:center;gap:32px;flex-wrap:wrap">
+            <!-- Rules score -->
+            <div style="min-width:160px">
+              <div style="font-size:9px;font-weight:600;color:var(--tx3);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px">Rules score</div>
+              <div class="score-big" :style="'color:' + (mlScore >= 90 ? 'var(--green)' : mlScore >= 70 ? 'var(--amber)' : 'var(--red)')" x-text="mlScore !== null ? mlScore + '%' : '—'"></div>
+              <div class="score-bar-wrap" style="width:160px">
+                <div class="score-bar" :style="'width:' + (mlScore ?? 0) + '%;background:' + (mlScore >= 90 ? 'var(--green)' : mlScore >= 70 ? 'var(--amber)' : 'var(--red)')"></div>
+              </div>
+              <div style="font-size:10px;color:var(--tx3)" x-text="mlScoreMeta"></div>
+            </div>
+            <!-- ML score -->
+            <div style="min-width:160px">
+              <div style="font-size:9px;font-weight:600;color:var(--cyan);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px">ML score</div>
+              <div class="score-big" :style="'color:' + (mlScoreML >= 90 ? 'var(--green)' : mlScoreML >= 70 ? 'var(--amber)' : mlScoreML !== null ? 'var(--red)' : 'var(--tx3)')"
+                x-text="mlScoreML !== null ? mlScoreML + '%' : mlModelStatus.trained ? '—' : 'untrained'"></div>
+              <div class="score-bar-wrap" style="width:160px">
+                <div class="score-bar" :style="'width:' + (mlScoreML ?? 0) + '%;background:' + (mlScoreML >= 90 ? 'var(--green)' : mlScoreML >= 70 ? 'var(--amber)' : 'var(--red)')"></div>
+              </div>
+              <div style="font-size:10px;color:var(--tx3)" x-text="mlScoreMLMeta"></div>
+            </div>
+            <div style="flex:1">
+              <div style="font-size:11px;color:var(--tx2);margin-bottom:6px" x-text="mlBreakdown"></div>
+              <div style="font-size:11px;color:var(--cyan)" x-show="mlBreakdownML" x-text="mlBreakdownML"></div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <button class="btn btn-primary" @click="runTests()">▶ rules only</button>
+              <button class="btn" :class="mlModelStatus.trained?'':''" @click="runTestsMl()"
+                :disabled="!mlModelStatus.trained || mlTestingML">
+                <span x-show="mlTestingML"><span class="spin"></span></span>
+                <span x-text="mlTestingML?'testing...':'▶ ML model'"></span>
+              </button>
+              <button class="btn" @click="runTests();runTestsMl()" :disabled="!mlModelStatus.trained || mlTestingML">▶ both</button>
+            </div>
+          </div>
+        </div>
+        <!-- Results: side by side when both ran, single column otherwise -->
+        <div :style="mlResultsML?'display:grid;grid-template-columns:1fr 1fr;gap:14px':''">
+          <div>
+            <div x-show="mlResultsML" style="font-size:9px;font-weight:600;color:var(--tx3);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">rules</div>
+            <div id="ml-results"></div>
+          </div>
+          <div x-show="mlResultsML">
+            <div style="font-size:9px;font-weight:600;color:var(--cyan);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">ml model</div>
+            <div id="ml-results-ml"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Live Tagger -->
+      <div class="tab-pane" :class="{on: mlTab==='live'}">
+        <div class="card">
+          <div class="card-head">
+            <span>live tag preview</span>
+            <div class="card-head-actions">
+              <span style="font-size:9px;color:var(--tx3)">mode:</span>
+              <button class="btn btn-xs" :class="liveTagMode==='rules'?'btn-primary':''" @click="liveTagMode='rules';liveTag()">rules only</button>
+              <button class="btn btn-xs" :class="liveTagMode==='ml'?'btn-primary':''" @click="liveTagMode='ml';liveTagMl()"
+                :disabled="!mlModelStatus.trained">ML + rules</button>
+              <button class="btn btn-xs" :class="liveTagMode==='compare'?'btn-primary':''" @click="liveTagMode='compare';liveTag();liveTagMl()"
+                :disabled="!mlModelStatus.trained">compare</button>
+            </div>
+          </div>
+          <div class="card-body">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+              <div class="form-field">
+                <label class="form-label">Dish name (Slovak)</label>
+                <input class="input" x-model="liveName" @input="liveTag();if(liveTagMode!=='rules')liveTagMl()" placeholder="Kuracie na grile so smotanou, ryža">
+              </div>
+              <div class="form-field">
+                <label class="form-label">Description (optional)</label>
+                <input class="input" x-model="liveDesc" @input="liveTag();if(liveTagMode!=='rules')liveTagMl()" placeholder="so zeleninovou oblohou...">
+              </div>
+            </div>
+            <div class="form-field" style="margin-bottom:14px;max-width:200px">
+              <label class="form-label">Type</label>
+              <select class="input" x-model="liveType" @change="liveTag();if(liveTagMode!=='rules')liveTagMl()">
+                <option value="main">main</option>
+                <option value="soup">soup</option>
+                <option value="dessert">dessert</option>
+              </select>
+            </div>
+
+            <!-- Side by side compare layout -->
+            <div :style="liveTagMode==='compare'?'display:grid;grid-template-columns:1fr 1fr;gap:16px':''">
+              <div>
+                <div style="margin-bottom:6px;font-size:9px;font-weight:600;color:var(--tx3);letter-spacing:1px;text-transform:uppercase"
+                  x-text="liveTagMode==='compare'?'rules only':'generated tags'"></div>
+                <div style="display:flex;flex-wrap:wrap;gap:4px;min-height:28px" id="live-tag-output">
+                  <span style="color:var(--tx3);font-size:11px">type a dish name above</span>
+                </div>
+                <div style="margin-top:10px;font-size:10px;color:var(--tx3)" id="live-tag-reasoning"></div>
+              </div>
+              <div x-show="liveTagMode==='compare' || liveTagMode==='ml'">
+                <div style="margin-bottom:6px;font-size:9px;font-weight:600;color:var(--cyan);letter-spacing:1px;text-transform:uppercase"
+                  x-text="liveTagMode==='compare'?'ml + rules':'ml + rules'"></div>
+                <div style="display:flex;flex-wrap:wrap;gap:4px;min-height:28px" id="live-tag-ml-output">
+                  <span style="color:var(--tx3);font-size:11px" x-show="!mlModelStatus.trained">no model trained yet</span>
+                </div>
+                <div style="margin-top:8px" id="live-tag-ml-scores"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tags & Stats (merged Visualizer + Inspector) -->
+      <div class="tab-pane" :class="{on: mlTab==='stats'}">
+
+        <!-- Health summary row -->
+        <div class="stat-row" style="grid-template-columns:repeat(4,1fr)" x-show="tagStatsData">
+          <div class="stat-card">
+            <div class="stat-label">total items</div>
+            <div class="stat-val blue" x-text="tagStatsData?.total_items ?? '—'"></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">tagged items</div>
+            <div class="stat-val green" x-text="tagStatsData ? (tagStatsData.total_items - tagStatsData.untagged_count) : '—'"></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">untagged</div>
+            <div class="stat-val" :class="(tagStatsData?.untagged_count||0)>0?'amber':'green'" x-text="tagStatsData?.untagged_count ?? '—'"></div>
+            <div class="stat-sub">click to inspect</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">distinct tags</div>
+            <div class="stat-val" x-text="tagStatsData?.tags?.length ?? '—'"></div>
+          </div>
+        </div>
+
+        <!-- Tag distribution bars — clickable to show items below -->
+        <div class="card">
+          <div class="card-head">
+            <span>tag distribution</span>
+            <div class="card-head-actions">
+              <span x-show="tagStatsSelected" style="font-size:10px;color:var(--cyan)" x-text="'showing: ' + tagStatsSelected"></span>
+              <button class="btn btn-sm" x-show="tagStatsSelected" @click="tagStatsSelected=null;tagStatsItems=[]">✕ clear</button>
+              <button class="btn btn-sm" @click="loadTagStats()">↻ refresh</button>
+            </div>
+          </div>
+          <div class="card-body">
+            <div x-show="!tagStatsData" class="empty"><span class="spin"></span> loading...</div>
+            <template x-if="tagStatsData">
+              <div>
+                <!-- Untagged alert -->
+                <div x-show="tagStatsData.untagged_count > 0"
+                  style="background:var(--amber-dim);border:1px solid var(--amber);border-radius:var(--radius);padding:10px 14px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;cursor:pointer"
+                  @click="showTagDetail('__untagged__')">
+                  <span style="font-size:12px;color:var(--amber)">⚠ <strong x-text="tagStatsData.untagged_count"></strong> items have no tags — click to see them</span>
+                  <span class="pill pill-amber">fix now →</span>
+                </div>
+
+                <!-- Bar chart rows -->
+                <div style="display:flex;flex-direction:column;gap:4px">
+                  <template x-for="t in tagStatsData.tags" :key="t.tag">
+                    <div class="tag-bar-row" :class="tagStatsSelected===t.tag?'active':''"
+                      @click="showTagDetail(t.tag)">
+                      <div style="width:90px;font-size:11px;color:var(--cyan);font-weight:500;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" x-text="t.tag"></div>
+                      <div style="flex:1;background:var(--bg2);border-radius:2px;height:14px;overflow:hidden;position:relative">
+                        <div :style="'width:'+Math.round(t.count/tagStatsData.tags[0].count*100)+'%;height:100%;background:var(--green);border-radius:2px;transition:width 0.4s'"></div>
+                        <span style="position:absolute;right:6px;top:50%;transform:translateY(-50%);font-size:9px;color:var(--tx3)" x-text="t.count + ' (' + t.pct + '%)'"></span>
+                      </div>
+                    </div>
+                  </template>
+                </div>
+                <div style="margin-top:10px;font-size:10px;color:var(--tx3)" x-text="tagStatsData.total_items + ' total items · ' + tagStatsData.tags.length + ' distinct tags · click a bar to inspect items'"></div>
+              </div>
+            </template>
+          </div>
+        </div>
+
+        <!-- Item detail panel — shown when a tag bar is clicked -->
+        <div class="card" x-show="tagStatsSelected">
+          <div class="card-head">
+            <span x-text="tagStatsSelected === '__untagged__' ? 'untagged items' : ('items tagged: ' + tagStatsSelected)"></span>
+            <div class="card-head-actions">
+              <span class="pill pill-gray" x-text="tagStatsItems.length + ' items'"></span>
+              <button class="btn btn-sm btn-primary" x-show="tagStatsSelected !== '__untagged__'" @click="bulkFromTag(tagStatsSelected)">bulk edit these →</button>
+            </div>
+          </div>
+          <div x-show="tagStatsLoading" class="empty"><span class="spin"></span> loading...</div>
+          <table class="tbl" x-show="!tagStatsLoading && tagStatsItems.length">
+            <thead><tr><th>dish</th><th>restaurant</th><th>city</th><th>type</th><th>tags</th></tr></thead>
+            <tbody>
+              <template x-for="i in tagStatsItems.slice(0,50)" :key="i.id ?? i.name">
+                <tr>
+                  <td x-text="i.name"></td>
+                  <td class="muted" x-text="i.restaurant_name"></td>
+                  <td class="muted" x-text="i.city_slug"></td>
+                  <td :class="'t-'+(i.type||'')" x-text="i.type"></td>
+                  <td><template x-for="t in (i.tags||[])" :key="t"><span class="ftag" x-text="t"></span></template></td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+          <div x-show="tagStatsItems.length>50" style="font-size:10px;color:var(--tx3);padding:8px 12px" x-text="'showing 50 of ' + tagStatsItems.length"></div>
+        </div>
+
+      </div>
+
+      <!-- Bulk Editor -->
+      <div class="tab-pane" :class="{on: mlTab==='editor'}">
+
+        <!-- ── STICKY TAG PANEL ───────────────────────────────────────────── -->
+        <div class="bulk-tag-panel" x-show="bulkSelected.length > 0">
+          <div class="card-head" style="border-bottom:1px solid var(--border2)">
+            <span x-text="bulkSelected.length + ' item' + (bulkSelected.length>1?'s':'')+' selected'"></span>
+            <div class="card-head-actions">
+              <span style="font-size:10px;color:var(--green)" x-show="bulkSaveMsg" x-text="bulkSaveMsg"></span>
+              <button class="btn btn-sm" @click="bulkSaveTags(false)"
+                :disabled="Object.keys(bulkTagState).length===0">save</button>
+              <button class="btn btn-sm btn-primary" @click="bulkSaveTags(true)">✓ save + train</button>
+              <button class="btn btn-sm" @click="bulkClearSelection()">✕ deselect</button>
+            </div>
+          </div>
+          <div style="padding:10px 14px;display:grid;grid-template-columns:1fr 1fr;gap:16px">
+
+            <!-- LEFT: tags that will be added -->
+            <div>
+              <div style="font-size:9px;font-weight:600;color:var(--green);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">add to selected items</div>
+              <!-- All known tags — click to queue for adding -->
+              <div style="display:flex;flex-wrap:wrap;gap:3px;margin-bottom:8px">
+                <template x-for="t in allKnownTags" :key="t">
+                  <span class="pill pill-round"
+                    :class="bulkTagState[t]==='add' ? 'pill-green' : 'pill-gray'"
+                    style="cursor:pointer;font-size:10px;padding:3px 9px;transition:all 0.1s;user-select:none"
+                    @click="bulkTagState[t]==='add' ? bulkUnsetTag(t) : bulkSetTag(t,'add')"
+                    x-text="t"></span>
+                </template>
+              </div>
+              <!-- Custom tag -->
+              <div style="display:flex;gap:5px">
+                <input class="input input-sm" style="flex:1;max-width:160px" x-model="bulkCustomTag"
+                  placeholder="custom tag..." @keydown.enter="bulkAddCustomTag()">
+                <button class="btn btn-sm" @click="bulkAddCustomTag()">+ add</button>
+              </div>
+              <!-- Queued adds preview -->
+              <div x-show="Object.entries(bulkTagState).some(([,s])=>s==='add')"
+                style="margin-top:7px;display:flex;flex-wrap:wrap;gap:3px;align-items:center">
+                <span style="font-size:9px;color:var(--tx3);margin-right:3px">queued:</span>
+                <template x-for="[t,s] in Object.entries(bulkTagState).filter(([,s])=>s==='add')" :key="t">
+                  <span class="pill pill-green pill-round" style="cursor:pointer" @click="bulkUnsetTag(t)" x-text="t+' ×'"></span>
+                </template>
+              </div>
+            </div>
+
+            <!-- RIGHT: tags that will be removed -->
+            <div>
+              <div style="font-size:9px;font-weight:600;color:var(--red);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">remove from selected items</div>
+              <!-- Union of tags currently on selected items -->
+              <div style="display:flex;flex-wrap:wrap;gap:3px;margin-bottom:8px">
+                <template x-for="t in bulkUnionTags" :key="t">
+                  <span class="pill pill-round"
+                    :class="bulkTagState[t]==='remove' ? 'pill-red' : 'pill-gray'"
+                    style="cursor:pointer;font-size:10px;padding:3px 9px;transition:all 0.1s;user-select:none"
+                    @click="bulkTagState[t]==='remove' ? bulkUnsetTag(t) : bulkSetTag(t,'remove')"
+                    x-text="t"></span>
+                </template>
+                <span x-show="!bulkUnionTags.length" style="font-size:10px;color:var(--tx3)">selected items have no tags yet</span>
+              </div>
+              <!-- Queued removes preview -->
+              <div x-show="Object.entries(bulkTagState).some(([,s])=>s==='remove')"
+                style="display:flex;flex-wrap:wrap;gap:3px;align-items:center">
+                <span style="font-size:9px;color:var(--tx3);margin-right:3px">queued:</span>
+                <template x-for="[t,s] in Object.entries(bulkTagState).filter(([,s])=>s==='remove')" :key="t">
+                  <span class="pill pill-red pill-round" style="cursor:pointer" @click="bulkUnsetTag(t)" x-text="t+' ×'"></span>
+                </template>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ── SEARCH + LIST ──────────────────────────────────────────────── -->
+        <div class="card">
+          <div class="card-head">
+            <span x-text="bulkVisibleResults.length + ' items' + (bulkResults.length !== bulkVisibleResults.length ? ' (of ' + bulkResults.length + ')' : '')"></span>
+            <div class="card-head-actions">
+              <!-- Day selector -->
+              <button class="btn btn-xs" :class="bulkDay===null?'btn-primary':''" @click="bulkDay=null;bulkSearchItems()">All</button>
+              <template x-for="d in mapDayOptions" :key="d.iso">
+                <button class="btn btn-xs" :class="bulkDay===d.iso?'btn-primary':''"
+                  @click="bulkDay=d.iso;bulkSearchItems()" x-text="d.label"></button>
+              </template>
+              <button class="btn btn-sm" x-show="bulkSelected.length===0" @click="bulkSelectAll()">select all</button>
+              <span style="font-size:10px;color:var(--green)" x-show="bulkSelected.length > 0" x-text="bulkSelected.length + ' selected'"></span>
+            </div>
+          </div>
+          <div class="card-body" style="padding-bottom:8px">
+            <!-- Filters -->
+            <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+              <input class="input input-sm" style="flex:1;min-width:160px;max-width:280px" x-model="bulkSearch" @input.debounce.400ms="bulkSearchItems()" placeholder="search dishes...">
+              <select class="input input-sm" style="width:120px" x-model="bulkCityFilter" @change="bulkSearchItems()">
+                <option value="">all cities</option>
+                <template x-for="c in cities" :key="c.slug"><option :value="c.slug" x-text="c.name"></option></template>
+              </select>
+              <select class="input input-sm" style="width:100px" x-model="bulkTypeFilter" @change="bulkSearchItems()">
+                <option value="">all types</option>
+                <option value="main">main</option>
+                <option value="soup">soup</option>
+                <option value="dessert">dessert</option>
+              </select>
+              <label class="filter-btn" :class="{on: bulkUntaggedOnly}" style="cursor:pointer;display:flex;align-items:center;gap:5px">
+                <input type="checkbox" x-model="bulkUntaggedOnly" @change="bulkSearchItems()" style="accent-color:var(--green);width:12px;height:12px">
+                untagged
+              </label>
+              <label class="filter-btn" :class="{on: bulkHideTrained}" style="cursor:pointer;display:flex;align-items:center;gap:5px">
+                <input type="checkbox" x-model="bulkHideTrained" @change="localStorage.setItem('tm_bulkHideTrained', bulkHideTrained);_recomputeVisible()" style="accent-color:var(--cyan);width:12px;height:12px">
+                hide trained
+              </label>
+            </div>
+
+            <!-- Shift-click hint -->
+            <div style="font-size:9px;color:var(--tx3);margin-bottom:8px">hold <kbd style="background:var(--bg2);border:1px solid var(--border2);border-radius:3px;padding:1px 5px;font-size:9px">Shift</kbd> and click to select a range</div>
+
+            <!-- List -->
+            <div x-show="bulkResults.length===0 && bulkSearch.length===0" class="empty" style="padding:12px 0"><span class="spin"></span> loading...</div>
+            <div x-show="bulkResults.length===0 && bulkSearch.length>0" class="empty">no items found</div>
+            <div x-show="bulkResults.length>0 && bulkVisibleResults.length===0" class="empty">all items hidden by filters</div>
+            <template x-for="item in bulkVisibleResults" :key="item.id">
+              <div class="bulk-row" :class="(bulkSelected.includes(item.id)?'selected ':'')+(item._trained?'trained':'')"
+                @click="bulkToggleItem(item.id, $event, bulkVisibleResults.indexOf(item))">
+                <input type="checkbox" :checked="bulkSelected.includes(item.id)" @click.stop="bulkToggleItem(item.id, $event, bulkVisibleResults.indexOf(item))"
+                  style="accent-color:var(--green);width:14px;height:14px;flex-shrink:0;margin-top:3px">
+                <div style="flex:1;min-width:0">
+                  <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+                    <span style="font-size:12px;font-weight:500" x-text="item.name"></span>
+                    <span class="pill pill-gray" style="font-size:8px" x-text="item.type"></span>
+                    <span style="font-size:10px;color:var(--tx3)" x-text="item.restaurant_name + ' · ' + item.city_slug"></span>
+                    <span x-show="item._trained" class="pill pill-cyan pill-round" style="font-size:8px;padding:1px 6px">✓ trained</span>
+                  </div>
+                  <div style="margin-top:3px;display:flex;flex-wrap:wrap;gap:3px">
+                    <template x-for="t in (item.tags||[])" :key="t"><span class="ftag" x-text="t"></span></template>
+                    <span x-show="!item.tags?.length" style="font-size:10px;color:var(--tx3)">no tags</span>
+                  </div>
+                </div>
+              </div>
+            </template>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Train -->
+      <div class="tab-pane" :class="{on: mlTab==='train'}">
+
+        <!-- Model status card -->
+        <div class="stat-row" style="grid-template-columns:repeat(4,1fr)">
+          <div class="stat-card">
+            <div class="stat-label">model status</div>
+            <div class="stat-val" :class="mlModelStatus.trained?'green':'amber'"
+              x-text="mlModelStatus.trained?'ready':'untrained'"></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">training examples</div>
+            <div class="stat-val blue" x-text="mlModelStatus.ml_examples ?? '—'"></div>
+            <div class="stat-sub">human-verified (bulk editor)</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">total examples</div>
+            <div class="stat-val" x-text="mlModelStatus.examples ?? '—'"></div>
+            <div class="stat-sub">incl. auto-tagged items</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">tag classes</div>
+            <div class="stat-val" x-text="mlModelStatus.labels ?? '—'"></div>
+          </div>
+        </div>
+
+        <!-- Train action card -->
+        <div class="card">
+          <div class="card-head">
+            <span>model training</span>
+            <div class="card-head-actions">
+              <span x-show="mlModelStatus.trained_at" style="font-size:10px;color:var(--tx3)"
+                x-text="'last trained: ' + (mlModelStatus.trained_at||'').slice(0,16).replace('T',' ')"></span>
+              <button class="btn btn-primary" @click="trainModel()" :disabled="mlTraining">
+                <span x-show="mlTraining"><span class="spin"></span></span>
+                <span x-text="mlTraining?'training...':mlModelStatus.trained?'↻ retrain':'▶ train model'"></span>
+              </button>
+            </div>
+          </div>
+          <div class="card-body">
+            <div style="font-size:12px;color:var(--tx2);margin-bottom:14px;line-height:1.7">
+              The model trains on <strong style="color:var(--tx)">all tagged menu items</strong> in the database as weak supervision,
+              plus your <strong style="color:var(--cyan)">human-verified examples</strong> from the Bulk Editor (weighted 5×).
+              After training, the next scrape will use ML predictions merged with rule-based tags.
+            </div>
+
+            <!-- Training result -->
+            <template x-if="mlTrainResult">
+              <div>
+                <div class="divider" style="margin-bottom:12px">last training run</div>
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px">
+                  <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius);padding:12px">
+                    <div style="font-size:9px;color:var(--tx3);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">examples used</div>
+                    <div style="font-size:22px;font-weight:600;font-family:var(--font-head);color:var(--blue)" x-text="mlTrainResult.examples"></div>
+                  </div>
+                  <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius);padding:12px">
+                    <div style="font-size:9px;color:var(--tx3);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">human-verified</div>
+                    <div style="font-size:22px;font-weight:600;font-family:var(--font-head);color:var(--cyan)" x-text="mlTrainResult.ml_examples"></div>
+                  </div>
+                  <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius);padding:12px">
+                    <div style="font-size:9px;color:var(--tx3);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">tag classes</div>
+                    <div style="font-size:22px;font-weight:600;font-family:var(--font-head);color:var(--green)" x-text="mlTrainResult.labels"></div>
+                  </div>
+                </div>
+
+                <!-- Per-tag sample counts -->
+                <div style="font-size:9px;font-weight:600;color:var(--tx3);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">samples per tag</div>
+                <div style="display:flex;flex-direction:column;gap:3px">
+                  <template x-for="t in (mlTrainResult.tag_stats||[])" :key="t.tag">
+                    <div style="display:flex;align-items:center;gap:10px">
+                      <div style="width:80px;font-size:11px;color:var(--cyan);font-weight:500;flex-shrink:0" x-text="t.tag"></div>
+                      <div style="flex:1;background:var(--bg2);border-radius:2px;height:12px;overflow:hidden;position:relative">
+                        <div :style="'width:'+Math.round(t.count/(mlTrainResult.tag_stats[0]?.count||1)*100)+'%;height:100%;background:var(--green);border-radius:2px'"></div>
+                        <span style="position:absolute;right:5px;top:50%;transform:translateY(-50%);font-size:9px;color:var(--tx3)" x-text="t.count"></span>
+                      </div>
+                    </div>
+                  </template>
+                </div>
+              </div>
+            </template>
+
+            <div x-show="!mlTrainResult && !mlTraining && !mlModelStatus.trained" class="empty" style="padding:8px 0">
+              No model trained yet. Click "Train model" to start. You can train immediately — the model will use all existing tagged menu items as its starting point.
+            </div>
+          </div>
+        </div>
+
+        <!-- Training examples card -->
+        <div class="card">
+          <div class="card-head">
+            <span>human-verified examples</span>
+            <div class="card-head-actions">
+              <span class="pill pill-gray" x-text="(mlExamples.length||0) + ' examples'"></span>
+              <button class="btn btn-sm" @click="loadMlExamples()">↻ refresh</button>
+            </div>
+          </div>
+          <div x-show="!mlExamples.length" class="empty">
+            No verified examples yet. Use the <strong>Bulk Editor</strong> → select items → apply tags → click <strong>save + train</strong>.
+          </div>
+          <table class="tbl" x-show="mlExamples.length">
+            <thead><tr><th>dish</th><th>verified tags</th><th>saved at</th></tr></thead>
+            <tbody>
+              <template x-for="ex in mlExamples.slice(0,30)" :key="ex.id">
+                <tr>
+                  <td style="font-weight:500" x-text="ex.item_name"></td>
+                  <td><template x-for="t in (ex.tags||[])" :key="t"><span class="ftag" x-text="t"></span></template></td>
+                  <td class="muted" x-text="ex.created_at?.slice(0,16).replace('T',' ')"></td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+          <div x-show="mlExamples.length>30" style="font-size:10px;color:var(--tx3);padding:8px 12px"
+            x-text="'showing 30 of ' + mlExamples.length + ' — train to use all of them'"></div>
+        </div>
+
+      </div>
+
+    </div><!-- /page==='ml' -->
+
+    <!-- ── FEED PREVIEW ───────────────────────────────────────────────────── -->
+    <div x-show="page==='feed'">
+      <div style="display:grid;grid-template-columns:300px 1fr;gap:16px">
+        <div>
+          <div class="card">
+            <div class="card-head">emulate user</div>
+            <div class="card-body">
+              <div class="form-field" style="margin-bottom:10px">
+                <label class="form-label">City</label>
+                <select class="input input-sm" x-model="feedCity">
+                  <template x-for="c in cities" :key="c.slug">
+                    <option :value="c.slug" x-text="c.name"></option>
+                  </template>
+                </select>
+              </div>
+              <div class="form-field" style="margin-bottom:10px">
+                <label class="form-label">Limit</label>
+                <input class="input input-sm" type="number" x-model="feedLimit" min="1" max="50">
+              </div>
+              <button class="btn btn-primary" style="width:100%;margin-bottom:12px" @click="loadFeedPreview()">Load Feed</button>
+              <div style="border-top:1px solid var(--border);padding-top:12px">
+                <div style="font-size:9px;font-weight:600;color:var(--tx3);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">tag weights (taste profile)</div>
+                <div style="font-size:10px;color:var(--tx2);margin-bottom:10px">Drag to simulate a user's taste preferences.</div>
+                <template x-for="tag in feedTagWeights" :key="tag.name">
+                  <div style="margin-bottom:8px">
+                    <div style="display:flex;justify-content:space-between;margin-bottom:2px">
+                      <span style="font-size:11px;color:var(--cyan)" x-text="tag.name"></span>
+                      <span style="font-size:11px;font-weight:600" :style="'color:' + (tag.value>0?'var(--green)':tag.value<0?'var(--red)':'var(--tx3)')" x-text="(tag.value>0?'+':'')+tag.value+'%'"></span>
+                    </div>
+                    <input type="range" min="-100" max="100" step="5" x-model.number="tag.value" style="width:100%;accent-color:var(--green);height:4px">
+                  </div>
+                </template>
+                <div style="display:flex;gap:5px;margin-top:10px;flex-wrap:wrap">
+                  <button class="btn btn-xs" @click="feedTagWeights.forEach(t=>t.value=0)">reset</button>
+                  <button class="btn btn-xs" @click="applyFeedPreset('meat')">meat lover</button>
+                  <button class="btn btn-xs" @click="applyFeedPreset('veg')">vegetarian</button>
+                  <button class="btn btn-xs" @click="applyFeedPreset('healthy')">healthy</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div x-show="!feedItems.length" class="empty" style="padding-top:60px">configure user on the left and click Load Feed</div>
+          <template x-for="item in feedItems" :key="item.id ?? item.name">
+            <div class="feed-card" :style="item._score < 0 ? 'opacity:0.4;border-color:var(--border)' : ''">
+              <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:4px">
+                <div class="feed-dish" x-text="item.name" style="margin-bottom:0;flex:1"></div>
+                <template x-if="item._score !== undefined">
+                  <span class="pill pill-round" :class="item._score > 0 ? 'pill-green' : item._score < 0 ? 'pill-red' : 'pill-gray'"
+                    style="flex-shrink:0;margin-top:3px"
+                    x-text="item._score > 0 ? '+'+item._score+' match' : item._score < 0 ? 'not your taste' : 'neutral'"></span>
+                </template>
+              </div>
+              <div class="feed-rest" x-text="item.restaurant_name + ' · ' + (item.address || '')"></div>
+              <div class="feed-tags">
+                <template x-for="t in (item.tags ?? [])" :key="t">
+                  <span class="ftag"
+                    :style="feedTagWeights.find(w=>w.name===t)?.value > 0 ? 'border-color:var(--green);color:var(--green)' :
+                            feedTagWeights.find(w=>w.name===t)?.value < 0 ? 'opacity:0.35' : ''"
+                    x-text="t"></span>
+                </template>
+              </div>
+              <div class="feed-price" x-text="item.price_eur ? item.price_eur.toFixed(2) + ' €' : '—'"></div>
+            </div>
+          </template>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SCRAPER ────────────────────────────────────────────────────────── -->
+    <div x-show="page==='scraper'">
+      <div class="card">
+        <div class="card-head">
+          <span>manual scrape</span>
+          <div class="card-head-actions">
+            <button class="btn btn-primary btn-sm" @click="triggerScrapeSelected()" :disabled="scraping || !scrapeSelectedDays.length">
+              <span x-show="scraping"><span class="spin"></span></span>
+              <span x-text="'↻ scrape ' + (scrapeSelectedDays.length ? scrapeSelectedDays.join('+') : 'none')" ></span>
+            </button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div style="margin-bottom:12px;font-size:10px;font-weight:600;color:var(--tx3);letter-spacing:1px;text-transform:uppercase">select days</div>
+          <div class="day-check-row">
+            <template x-for="d in ['pondelok','utorok','streda','stvrtok','piatok']" :key="d">
+              <div class="day-check" :class="{on: scrapeSelectedDays.includes(d)}" @click.stop="toggleScrapeDay(d)" x-text="d"></div>
+            </template>
+            <button class="btn btn-sm" @click="scrapeSelectedDays=scrapeSelectedDays.length===5?[]:['pondelok','utorok','streda','stvrtok','piatok']">
+              <span x-text="scrapeSelectedDays.length===5?'none':'all'"></span>
+            </button>
+          </div>
+          <div class="divider" style="margin-top:14px">output</div>
+          <div class="log-box" id="scrape-log-live" x-html="scrapeOutput || 'waiting for run...'"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head">
+          <span>scrape history</span>
+          <button class="btn btn-sm" @click="loadScraperHistory()">↻ refresh</button>
+        </div>
+        <table class="tbl">
+          <thead><tr><th>city</th><th>date</th><th>scraped at</th><th>items</th></tr></thead>
+          <tbody>
+            <template x-for="r in scraperHistory" :key="r.scraped_at + r.city_slug">
+              <tr>
+                <td><span class="pill pill-gray" x-text="r.city_name ?? '—'"></span></td>
+                <td class="muted" x-text="r.date"></td>
+                <td class="muted" x-text="r.scraped_at?.replace('T',' ').slice(0,19)"></td>
+                <td><span class="pill pill-blue" x-text="r.item_count"></span></td>
+              </tr>
+            </template>
+            <tr x-show="!scraperHistory.length"><td colspan="4" class="empty">no runs yet</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="card">
+        <div class="card-head">scrape log (main.db)</div>
+        <table class="tbl">
+          <thead><tr><th>source</th><th>started</th><th>status</th><th>items</th><th>error</th></tr></thead>
+          <tbody>
+            <template x-for="l in scrapeLog" :key="l.id">
+              <tr>
+                <td class="muted" x-text="l.source"></td>
+                <td class="muted" x-text="l.started_at?.replace('T',' ').slice(0,19)"></td>
+                <td><span class="pill" :class="l.status==='ok'?'pill-green':l.status==='running'?'pill-amber':'pill-red'" x-text="l.status"></span></td>
+                <td x-text="l.items ?? 0"></td>
+                <td style="font-size:10px;color:var(--red)" x-text="l.error || ''"></td>
+              </tr>
+            </template>
+            <tr x-show="!scrapeLog.length"><td colspan="5" class="empty">no log entries</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── API KEYS ───────────────────────────────────────────────────────── -->
+    <div x-show="page==='keys'">
+      <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
+        <button class="btn btn-primary btn-sm" @click="openNewKey()">+ new key</button>
+      </div>
+      <div class="card">
+        <div class="card-head">api keys</div>
+        <table class="tbl">
+          <thead><tr><th>id</th><th>label</th><th>created</th><th>last used</th><th>status</th><th>stats</th><th></th></tr></thead>
+          <tbody>
+            <template x-for="k in apiKeys" :key="k.id">
+              <tr>
+                <td class="muted" x-text="k.id"></td>
+                <td style="font-weight:600" x-text="k.label || '—'"></td>
+                <td class="muted" x-text="k.created_at?.slice(0,10)"></td>
+                <td class="muted" x-text="k.last_used?.slice(0,16).replace('T',' ') || 'never'"></td>
+                <td><span class="pill" :class="k.active ? 'pill-green' : 'pill-red'" x-text="k.active ? 'active' : 'revoked'"></span></td>
+                <td class="muted" style="font-size:10px">no stats yet</td>
+                <td>
+                  <button class="btn btn-xs btn-danger" x-show="k.active" @click="revokeKey(k.id)">revoke</button>
+                </td>
+              </tr>
+            </template>
+            <tr x-show="!apiKeys.length"><td colspan="7" class="empty">no keys</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── CRON ───────────────────────────────────────────────────────────── -->
+    <div x-show="page==='cron'">
+      <div class="card">
+        <div class="card-head">scrape schedule</div>
+        <div class="card-body">
+          <div style="font-size:11px;color:var(--tx2);margin-bottom:16px">
+            Standard cron format — 5 fields. Changes saved to DB. Restart server to apply.
+          </div>
+          <div class="form-field" style="max-width:320px;margin-bottom:14px">
+            <label class="form-label">Cron expression</label>
+            <input class="input" x-model="cronSchedule" @input="parseCron()" placeholder="0 6,12,18,0 * * 1-5">
+          </div>
+          <div class="cron-fields" x-show="cronParts.length === 5">
+            <template x-for="(p, i) in cronParts" :key="i">
+              <div class="cron-field">
+                <div class="cron-field-val" x-text="p"></div>
+                <div class="cron-field-lbl" x-text="['Minute','Hour','Day','Month','Weekday'][i]"></div>
+              </div>
+            </template>
+          </div>
+          <div style="font-size:11px;color:var(--tx3);margin-bottom:16px" x-text="cronDesc"></div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-primary" @click="saveCron()">Save Schedule</button>
+            <button class="btn" @click="cronSchedule='0 6,12,18,0 * * 1-5';parseCron()">Reset to Default</button>
+          </div>
+          <div style="margin-top:8px;font-size:11px" :class="cronSaved ? 'pill-green' : ''" x-show="cronMsg" x-text="cronMsg"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-head">quick presets</div>
+        <div class="card-body" style="display:flex;flex-direction:column;gap:6px">
+          <button class="cron-preset btn" @click="cronSchedule='0 6,12,18,0 * * 1-5';parseCron()">0 6,12,18,0 * * 1-5 — Mon–Fri at 06:00 12:00 18:00 00:00</button>
+          <button class="cron-preset btn" @click="cronSchedule='0 7,13 * * 1-5';parseCron()">0 7,13 * * 1-5 — Mon–Fri at 07:00 and 13:00</button>
+          <button class="cron-preset btn" @click="cronSchedule='0 6 * * 1-5';parseCron()">0 6 * * 1-5 — Mon–Fri at 06:00 only</button>
+          <button class="cron-preset btn" @click="cronSchedule='*/30 * * * 1-5';parseCron()">*/30 * * * 1-5 — Every 30 min on weekdays</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── NOTIFICATIONS (ntfy) ───────────────────────────────────────────── -->
+    <div x-show="page==='ntfy'">
+      <div class="card">
+        <div class="card-head">ntfy configuration</div>
+        <div class="card-body">
+          <div class="ntfy-row">
+            <div class="form-field">
+              <label class="form-label">Server URL</label>
+              <input class="input" x-model="ntfy.server_url" placeholder="https://ntfy.sh">
+            </div>
+            <div class="form-field">
+              <label class="form-label">Topic</label>
+              <input class="input" x-model="ntfy.topic" placeholder="tomenu-admin">
+            </div>
+          </div>
+          <div class="toggle-row" style="margin-bottom:12px">
+            <div>
+              <div class="toggle-label">Private server</div>
+              <div class="toggle-sub">requires authorization token</div>
+            </div>
+            <input type="checkbox" x-model="ntfy.private" style="accent-color:var(--green);width:16px;height:16px">
+          </div>
+          <div class="form-field" x-show="ntfy.private" style="margin-bottom:14px;max-width:360px">
+            <label class="form-label">Authorization Token</label>
+            <input class="input" type="password" x-model="ntfy.auth_token" placeholder="tk_...">
+          </div>
+          <div class="divider">notifications are sent on</div>
+          <div style="font-size:12px;color:var(--tx2);line-height:2">
+            ✓ Scrape error<br>
+            ✓ 0 items scraped<br>
+            ✓ New bug report<br>
+            ✓ Data health failures
+          </div>
+          <div style="margin-top:16px;display:flex;gap:8px">
+            <button class="btn btn-primary" @click="saveNtfy()">Save Config</button>
+            <button class="btn" @click="testNtfy()">Send Test</button>
+          </div>
+          <div style="margin-top:8px;font-size:11px;color:var(--green)" x-show="ntfyMsg" x-text="ntfyMsg"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SYSTEM ─────────────────────────────────────────────────────────── -->
+    <div x-show="page==='sysinfo'">
+      <div class="stat-row">
+        <div class="stat-card">
+          <div class="stat-label">cities</div>
+          <div class="stat-val" x-text="sysInfo.cities ?? '—'"></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">restaurants</div>
+          <div class="stat-val green" x-text="sysInfo.restaurants ?? '—'"></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">menu items</div>
+          <div class="stat-val blue" x-text="sysInfo.menu_items ?? '—'"></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">scrape runs</div>
+          <div class="stat-val amber" x-text="sysInfo.scrape_runs ?? '—'"></div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+        <div class="card">
+          <div class="card-head">database sizes</div>
+          <div class="card-body">
+            <div class="sys-row">
+              <span class="sys-key">namenu.db</span>
+              <span class="sys-val" x-text="sysInfo.namenu_db_bytes ? (sysInfo.namenu_db_bytes/1024).toFixed(1) + ' KB' : '—'"></span>
+            </div>
+            <div class="sys-row">
+              <span class="sys-key">main.db</span>
+              <span class="sys-val" x-text="sysInfo.main_db_bytes ? (sysInfo.main_db_bytes/1024).toFixed(1) + ' KB' : '—'"></span>
+            </div>
+            <div class="sys-row">
+              <span class="sys-key">active api keys</span>
+              <span class="sys-val" x-text="sysInfo.api_keys ?? '—'"></span>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head">cron schedule</div>
+          <div class="card-body">
+            <div class="sys-row">
+              <span class="sys-key">expression</span>
+              <span class="sys-val" style="font-family:'Courier New';font-size:11px" x-text="sysInfo.cron_schedule ?? '—'"></span>
+            </div>
+            <div class="sys-row">
+              <span class="sys-key">days</span>
+              <span class="sys-val">Mon – Fri</span>
+            </div>
+            <div class="sys-row">
+              <span class="sys-key">source</span>
+              <span class="sys-val">namenu.sk</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<!-- ── NEW KEY MODAL ─────────────────────────────────────────────────────── -->
+<div class="modal-bg" :class="{open: modal==='newkey'}">
+  <div class="modal-box">
+    <div class="modal-title">New API Key</div>
+    <div class="form-field" style="margin-bottom:14px">
+      <label class="form-label">Label</label>
+      <input class="input" x-model="newKeyLabel" placeholder="e.g. flutter app">
+    </div>
+    <div x-show="newKeyValue" class="key-reveal">
+      <span x-text="newKeyValue"></span>
+      <button class="btn btn-sm" @click="copyToClipboard(newKeyValue)">copy</button>
+    </div>
+    <div x-show="newKeyValue" style="font-size:10px;color:var(--amber);margin-top:8px">⚠ copy this now — it will not be shown again</div>
+    <div class="modal-foot">
+      <button class="btn" @click="modal=null;newKeyLabel='';newKeyValue=''">close</button>
+      <button class="btn btn-primary" x-show="!newKeyValue" @click="createKey()">Create</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── TAG EDITOR MODAL ───────────────────────────────────────────────────── -->
+<div class="modal-bg" :class="{open: modal==='tageditor'}" @click.self="modal=null;editorCurrentItem=null">
+  <div class="modal-box" style="width:600px;max-width:96vw">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px">
+      <div class="modal-title" style="margin-bottom:0" x-text="editorCurrentItem?.name || '—'"></div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span style="font-size:10px;color:var(--tx3)" x-show="editorSessionItems.length>0" x-text="(editorSessionIndex+1)+'/'+editorSessionItems.length"></span>
+        <button class="btn btn-xs" @click="modal=null;editorCurrentItem=null">✕</button>
+      </div>
+    </div>
+    <div style="font-size:11px;color:var(--tx3);margin-bottom:16px" x-text="editorCurrentItem?.restaurant_name||'(imported dish)'"></div>
+
+    <div style="margin-bottom:12px">
+      <div style="font-size:9px;font-weight:600;color:var(--tx3);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">suggested by auto-tagger</div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px">
+        <template x-for="t in editorSuggestedTags" :key="t">
+          <span class="pill pill-round" :class="editorActiveTags.includes(t)?'pill-green':'pill-gray'" style="cursor:pointer" @click="toggleEditorTag(t)" x-text="t"></span>
+        </template>
+        <span x-show="!editorSuggestedTags.length" style="font-size:10px;color:var(--tx3)">none suggested</span>
+      </div>
+    </div>
+
+    <div style="margin-bottom:12px">
+      <div style="font-size:9px;font-weight:600;color:var(--tx3);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">all tags — click to toggle</div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px">
+        <template x-for="t in allKnownTags" :key="t">
+          <span class="pill pill-round" :class="editorActiveTags.includes(t)?'pill-cyan':'pill-gray'" style="cursor:pointer" @click="toggleEditorTag(t)" x-text="t"></span>
+        </template>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:8px;margin-bottom:14px">
+      <input class="input input-sm" style="max-width:200px" x-model="editorCustomTag" placeholder="add custom tag..." @keydown.enter="addCustomTag()">
+      <button class="btn btn-sm" @click="addCustomTag()">+ add</button>
+    </div>
+
+    <div style="margin-bottom:4px">
+      <div style="font-size:9px;font-weight:600;color:var(--tx3);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px">selected tags</div>
+      <div style="display:flex;flex-wrap:wrap;gap:4px;min-height:36px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:8px">
+        <template x-for="t in editorActiveTags" :key="t">
+          <span class="pill pill-green pill-round" style="cursor:pointer" @click="toggleEditorTag(t)" x-text="t+' ×'"></span>
+        </template>
+        <span x-show="!editorActiveTags.length" style="font-size:11px;color:var(--tx3)">no tags selected</span>
+      </div>
+    </div>
+
+    <div class="modal-foot" style="flex-wrap:wrap;gap:8px">
+      <button class="btn" @click="modal=null;editorCurrentItem=null">cancel</button>
+      <button class="btn" x-show="editorSessionItems.length>0 && editorSessionIndex<editorSessionItems.length-1" @click="nextSessionItem()">skip →</button>
+      <button class="btn" @click="saveEditorTags(false)">save tags</button>
+      <button class="btn btn-primary" @click="saveEditorTags(true)">✓ save as training example</button>
+      <span style="font-size:10px;color:var(--green);align-self:center" x-show="editorSaveMsg" x-text="editorSaveMsg"></span>
+    </div>
+  </div>
+</div>
+
+<!-- ── TOAST ─────────────────────────────────────────────────────────────── -->
 <div id="toast"></div>
 
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-// ── state ─────────────────────────────────────────────────────────────────────
-let API_KEY      = localStorage.getItem('tomenu_admin_key') || '';
-let currentCity  = localStorage.getItem('tomenu_city') || '';
-let currentPage  = 'overview';
-let allCities    = [];
-let allRestaurants = [];
-let todayItemCounts = {};
-let typeFilter   = 'all';
-let selectedDate = new Date().toISOString().slice(0,10);
-let deliveryOnly = false;
+'use strict';
 
-const ALLERGEN_NAMES = {1:'gluten',2:'crustaceans',3:'eggs',4:'fish',5:'peanuts',6:'soy',7:'milk',8:'nuts',9:'celery',10:'mustard',11:'sesame',12:'sulphites',13:'lupin',14:'molluscs'};
+// ── tag rules (mirrored from Python) ─────────────────────────────────────────
+const MEAT_KW = ['mäso','mäsov','rezen','rezeň','bravčov','bravčové','hovädz','hovädzí','hovädzieho','jahňa','teľac','šunka','slanina','bôčik','reberc','biftek','roastbeef','mleté','mletého','sekaná','kura','kurací','kuracích','kurča','kurčaťa','morka','morčac','kačic','králik'];
+const FISH_KW = ['ryba','rybacia','losos','treska','pstruh','kapor','filé','tuniak','sardina','platesa','tilapia'];
+const TAG_RULES = {
+  chicken:['kura','kurací','kuracích','kurča','kurčaťa'],pork:['bravčov','bravčové','šunka','slanina','bôčik','reberc'],
+  beef:['hovädz','hovädzí','hovädzieho','biftek','roastbeef'],fish:['ryba','rybacia','losos','treska','pstruh','kapor','filé','tuniak','sardina','platesa','tilapia'],
+  fried:['vyprážan','smaž','smažen','fritovan'],grilled:['grilovan','na grile','grill'],baked:['pečen','zapékan','zapečen','v rúre'],steamed:['dusené','dusen','varené v pare'],
+  pasta:['halušky','cestoviny','špagety','tagliatelle','penne','fusilli','lasagne','rezance','noky'],rice:['ryža','rizoto','pilaf'],
+  salad:['šalát','salát'],soup:['polievka','vývar','gulášová','kapustnica','šošovicová','fazuľová','paradajková','zemiaková pol'],
+  burger:['burger','hamburger'],sandwich:['sendvič','toast','bagel','wrap'],pizza:['pizza','pizz'],
+  asian:['čínsk','japonsk','thajsk','wok','sushi','nudle','ramen','pho'],
+  dessert:['dezert','lievance','lievančeky','buchty','šišky','nákyp','tiramisu','palacinky','koláč','torta'],
+  dairy:['bryndza','syr','syrov','smotana','maslo','jogurt','mozzarella','parmezan','ricotta'],egg:['vajce','vajíčko','omeleta','praženica'],
+  spicy:['pálivý','pálivé','chili','jalapeño','korenený'],sweet:['sladký','med','karamel','čokolád','vanilk','ovocn'],healthy:['celozrnn','nízkotučn','light','fit','bezlepkov'],vegan:['tofu','hummus','seitan','tempeh'],
+};
+const VEG_KW = ['špenát','zelenin','zeleninov','bryndza','tofu','hummus','cícer','šošovica','fazuľa','hrášok','brokolica','karfiol','vegán','vegetarián'];
+const ALLERGEN = {1:'gluten',2:'crustaceans',3:'eggs',4:'fish',5:'peanuts',6:'soy',7:'milk',8:'nuts',9:'celery',10:'mustard',11:'sesame',12:'sulphites',13:'lupin',14:'molluscs'};
+const DAYS = ['Mon','Tue','Wed','Thu','Fri'];
+const SK_DAYS = ['pondelok','utorok','streda','stvrtok','piatok'];
 
-// ── api ───────────────────────────────────────────────────────────────────────
-async function api(path, opts = {}) {
-  const res = await fetch(path, {
-    ...opts,
-    headers: {'Authorization': API_KEY, 'Content-Type': 'application/json', ...(opts.headers||{})}
-  });
-  if (res.status === 401 || res.status === 403) {
-    showKeyGate('invalid key — please re-enter');
-    throw new Error('auth');
-  }
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({detail: res.statusText}));
-    throw new Error(err.detail || res.statusText);
-  }
-  return res.json();
+function autoTag(name, type, desc='') {
+  const text = (name+' '+desc).toLowerCase();
+  const tags = new Set();
+  if (type==='soup') tags.add('soup');
+  const hasMeat = MEAT_KW.some(k=>text.includes(k));
+  const hasFish = FISH_KW.some(k=>text.includes(k));
+  if (hasMeat) tags.add('meat');
+  if (hasFish) tags.add('fish');
+  for (const [tag,kws] of Object.entries(TAG_RULES)) { if (kws.some(k=>text.includes(k))) tags.add(tag); }
+  if (!hasMeat&&!hasFish) { if (VEG_KW.some(k=>text.includes(k))) tags.add('vegetarian'); }
+  return [...tags].sort();
 }
 
-// ── key gate ──────────────────────────────────────────────────────────────────
-function showKeyGate(errMsg) {
-  document.getElementById('key-gate').classList.add('show');
-  document.getElementById('gate-error').textContent = errMsg || '';
-  setTimeout(() => document.getElementById('gate-input').focus(), 50);
+// ── test cases ────────────────────────────────────────────────────────────────
+const TEST_CASES = [
+  {name:'Kuracie na grile so smotanovou bazalkovou omáčkou, ryža',type:'main',expected:['chicken','grilled','meat'],neutral:['dairy','rice']},
+  {name:'Vyprážaný bravčový rezeň, zemiakový šalát',type:'main',expected:['fried','pork','meat'],neutral:['salad']},
+  {name:'Hovädzí guláš so špeciálnou omáčkou, halušky',type:'main',expected:['beef','meat'],neutral:['pasta']},
+  {name:'Grilovaný losos s citrónovým maslom, ryža',type:'main',expected:['fish','grilled'],neutral:['rice','dairy']},
+  {name:'Špenátová polievka so smotanou',type:'soup',expected:['soup','vegetarian'],neutral:['dairy']},
+  {name:'Paradajková polievka',type:'soup',expected:['soup','vegetarian'],neutral:[]},
+  {name:'Kapustnicová polievka s klobásou',type:'soup',expected:['soup','meat'],neutral:[]},
+  {name:'Cícerové karí so zeleninou, ryža',type:'main',expected:['vegetarian'],neutral:['rice']},
+  {name:'Wok s kuracím mäsom a zeleninou',type:'main',expected:['chicken','meat','asian'],neutral:[]},
+  {name:'Špagety Bolognese s hovädzím mäsom',type:'main',expected:['beef','meat','pasta'],neutral:[]},
+  {name:'Tofu so zeleninou a sójovou omáčkou',type:'main',expected:['vegetarian','vegan'],neutral:[]},
+  {name:'Vyprážaný syr s tatárskou omáčkou, hranolky',type:'main',expected:['fried','vegetarian','dairy'],neutral:[]},
+  {name:'Burger s hovädzím mäsom a syrom',type:'main',expected:['burger','beef','meat'],neutral:['dairy']},
+  {name:'Pečené kura s bylinkami, pečené zemiaky',type:'main',expected:['chicken','meat','baked'],neutral:[]},
+  {name:'Lievance so šľahačkou a džemom',type:'dessert',expected:['dessert','sweet'],neutral:['dairy']},
+  {name:'Ryža so zeleninou a vajíčkom',type:'main',expected:['vegetarian','egg'],neutral:['rice']},
+  {name:'Bravčové rebierka na grile, coleslaw',type:'main',expected:['pork','meat','grilled'],neutral:[]},
+  {name:'Fazuľová polievka s klobásou',type:'soup',expected:['soup','meat'],neutral:[]},
+  {name:'Zeleninová polievka',type:'soup',expected:['soup','vegetarian'],neutral:[]},
+  {name:'Treska na pari so zeleninou',type:'main',expected:['fish','steamed'],neutral:[]},
+  {name:'Penne s paradajkovou omáčkou a mozzarellou',type:'main',expected:['pasta','vegetarian','dairy'],neutral:[]},
+  {name:'Pálivé kurací burger s jalapeño',type:'main',expected:['chicken','meat','burger','spicy'],neutral:[]},
+  {name:'Hovädzí vývar s rezancami',type:'soup',expected:['soup','beef','meat'],neutral:['pasta']},
+  {name:'Fit šalát s grilovanou zeleninou',type:'main',expected:['vegetarian','salad','grilled'],neutral:['healthy']},
+  {name:'Morčací steak s brokolicou',type:'main',expected:['meat'],neutral:[]},
+];
+
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function renderAllergens(list) {
+  if (!list?.length) return '<span class="muted">—</span>';
+  return list.map(n=>`<span class="alg" title="${ALLERGEN[n]||''}">${n}</span>`).join('');
+}
+function renderMacros(i) {
+  const p=[];
+  if (i.kcal)      p.push(`<span class="macro macro-kcal">${i.kcal} kcal</span>`);
+  if (i.protein_g) p.push(`<span class="macro">P ${i.protein_g}g</span>`);
+  if (i.fat_g)     p.push(`<span class="macro">F ${i.fat_g}g</span>`);
+  if (i.carbs_g)   p.push(`<span class="macro">C ${i.carbs_g}g</span>`);
+  return p.join('');
 }
 
-function hideKeyGate() {
-  document.getElementById('key-gate').classList.remove('show');
-}
-
-async function submitKey() {
-  const input = document.getElementById('gate-input');
-  const errEl = document.getElementById('gate-error');
-  const btn   = document.getElementById('gate-btn');
-  const key   = input.value.trim();
-  if (!key) { errEl.textContent = 'please enter a key'; return; }
-
-  btn.textContent = 'checking...';
-  btn.disabled = true;
-
-  try {
-    const res = await fetch('/api/cities', {
-      headers: {'Authorization': key, 'Content-Type': 'application/json'}
-    });
-    if (res.status === 401 || res.status === 403) {
-      errEl.textContent = 'invalid key — try again';
-      input.value = '';
-      input.focus();
-      return;
-    }
-    if (!res.ok) { errEl.textContent = 'server error ' + res.status; return; }
-    API_KEY = key;
-    localStorage.setItem('tomenu_admin_key', key);
-    hideKeyGate();
-    loadDashboard();
-  } catch(e) {
-    errEl.textContent = 'cannot reach server — is it running?';
-  } finally {
-    btn.textContent = 'Connect';
-    btn.disabled = false;
-  }
-}
-
-// enter key on input
-document.getElementById('gate-input').addEventListener('keydown', e => {
-  if (e.key === 'Enter') submitKey();
-});
-
-// ── toast ─────────────────────────────────────────────────────────────────────
 function toast(msg, type='') {
   const el = document.getElementById('toast');
   el.textContent = msg; el.className = 'show ' + type;
-  clearTimeout(el._t); el._t = setTimeout(() => el.className = '', 3000);
+  clearTimeout(el._t); el._t = setTimeout(()=>el.className='',3000);
 }
 
-// ── status ────────────────────────────────────────────────────────────────────
-async function checkStatus() {
-  const dot = document.getElementById('status-dot');
-  const txt = document.getElementById('status-text');
-  try {
-    await fetch('/');
-    dot.className = 'online'; txt.textContent = 'API online';
-  } catch {
-    dot.className = ''; txt.textContent = 'API offline';
-  }
-}
+// ── Alpine app ────────────────────────────────────────────────────────────────
+function app() { return {
+  // auth
+  authed: false, gateKey: '', gateErr: '', gateLoading: false,
 
-// ── nav ───────────────────────────────────────────────────────────────────────
-const pageTitles = {overview:'Overview',menus:'Menus',restaurants:'All Restaurants',scraper:'Scraper',apikeys:'API Keys'};
+  // nav
+  page: 'overview',
+  get pageTitle() {
+    const t = {overview:'Overview',health:'Data Health',bugs:'Bugs',menus:'Menus',
+      restaurants:'Restaurants',ml:'ML / Tags',feed:'Feed Preview',scraper:'Scraper',
+      keys:'API Keys',cron:'Cron',ntfy:'Notifications',sysinfo:'System'};
+    return t[this.page] || this.page;
+  },
 
-function showPage(page, titleOverride) {
-  currentPage = page;
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.city-nav-item').forEach(n => n.classList.remove('active'));
-  const navItem = document.querySelector('[data-page="' + page + '"]');
-  if (navItem) navItem.classList.add('active');
-  document.getElementById('page-' + page).classList.add('active');
-  document.getElementById('page-title').textContent = titleOverride || pageTitles[page] || page;
-}
+  // state
+  cities: [], stats: {}, cityItemCnt: {}, activeCity: '', activeCityName: '',
+  allRests: [], filteredRests: [],
+  menuData: [], menuSearch: '', menuType: 'all', deliveryOnly: false, menuVisible: 0,
+  restSearch: '', restFilter: 'all',
+  bugs: [], bugFilter: 'all', openBugCount: 0,
+  apiKeys: [], newKeyLabel: '', newKeyValue: '', modal: null,
+  scraping: false, scrapeOutput: '', scraperHistory: [], scrapeLog: [],
+  scrapeSelectedDays: [],
+  sysInfo: {}, tagHealth: null, missingRests: [],
+  cronSchedule: '0 6,12,18,0 * * 1-5', cronParts: [], cronDesc: '', cronMsg: '', cronSaved: false,
+  ntfy: { server_url:'https://ntfy.sh', topic:'tomenu-admin', private:false, auth_token:'' }, ntfyMsg: '',
+  mlTab: 'tester', mlScore: null, mlScoreMeta: '', mlBreakdown: '',
+  mlScoreML: null, mlScoreMLMeta: '', mlBreakdownML: '', mlResultsML: false, mlTestingML: false,
+  liveName: '', liveDesc: '', liveType: 'main',
+  tagVizData: null,  // kept for compat
+  feedCity: '', feedUserId: 1, feedLimit: 10, feedItems: [],
+  mapSelectedDay: new Date().toISOString().slice(0,10),
+  get mapDayOptions() {
+    const days=[]; const d0=new Date();
+    d0.setDate(d0.getDate()-((d0.getDay()||7)-1)); d0.setHours(0,0,0,0);
+    const names=['Mon','Tue','Wed','Thu','Fri'];
+    for(let i=0;i<5;i++){const d=new Date(d0);d.setDate(d.getDate()+i);days.push({iso:d.toISOString().slice(0,10),label:names[i]});}
+    return days;
+  },
+  serverOnline: false,
+  get todayStr() { return new Date().toLocaleDateString('en-GB',{weekday:'short',day:'2-digit',month:'short'}); },
 
-document.querySelectorAll('.nav-item').forEach(item => {
-  item.addEventListener('click', () => {
-    const page = item.dataset.page;
-    showPage(page);
-    renderCitiesNav();
-    if (page === 'overview')    loadOverview();
-    if (page === 'restaurants') loadRestaurantsTable();
-    if (page === 'scraper')     loadScraperHistory();
-    if (page === 'apikeys')     loadKeys();
-    if (page === 'menus')       loadMenus();
-  });
-});
+  // health check
+  healthResults: null, healthRunning: false,
 
-// ── cities nav ────────────────────────────────────────────────────────────────
-function renderCitiesNav() {
-  const container = document.getElementById('cities-nav');
-  if (!allCities.length) {
-    container.innerHTML = '<div style="padding:6px 20px;font-size:10px;color:var(--text3)">no cities yet</div>';
-    return;
-  }
-  container.innerHTML = allCities.map(c => {
-    const count   = todayItemCounts[c.slug] || 0;
-    const hasData = count > 0;
-    const isActive = currentCity === c.slug && currentPage === 'menus';
-    return '<div class="city-nav-item' + (isActive?' active':'') + (hasData?' has-data':'') + '" onclick="selectCity(\'' + c.slug + '\',\'' + c.name.replace(/'/g,"\\'") + '\')">' +
-      '<span class="city-dot"></span>' +
-      '<span class="city-label">' + esc(c.name) + '</span>' +
-      (hasData ? '<span class="city-count">' + count + '</span>' : '') +
-      '</div>';
-  }).join('');
-}
+  // ML train tab
+  mlModelStatus: {}, mlTraining: false, mlTrainResult: null, mlExamples: [],
+  liveTagMode: 'rules',
 
-function selectCity(slug, name) {
-  currentCity  = slug;
-  selectedDate = new Date().toISOString().slice(0,10);
-  localStorage.setItem('tomenu_city', slug);
-  showPage('menus', name);
-  renderCitiesNav();
-  loadMenus();
-}
+  // tag stats (merged visualizer+inspector)
+  tagStatsData: null, tagStatsSelected: null, tagStatsItems: [], tagStatsLoading: false,
 
-// ── overview ──────────────────────────────────────────────────────────────────
-async function loadOverview() {
-  try {
-    const stats = await api('/admin/stats');
-    document.getElementById('st-restaurants').textContent = stats.restaurants;
-    document.getElementById('st-items').textContent       = stats.items_today;
-    document.getElementById('st-delivery').textContent    = stats.delivery;
-    document.getElementById('st-runs').textContent        = stats.scrape_runs;
-    (stats.city_breakdown||[]).forEach(c => { todayItemCounts[c.slug] = c.items_today; });
-    renderCitiesNav();
-    const tbody = document.getElementById('runs-body');
-    tbody.innerHTML = (stats.recent_runs||[]).map(r =>
-      '<tr><td><span class="badge badge-gray">' + esc(r.city_name||'—') + '</span></td>' +
-      '<td>' + r.date + '</td><td class="dim">' + r.day + '</td>' +
-      '<td class="dim">' + r.scraped_at.replace('T',' ').slice(0,19) + '</td>' +
-      '<td><span class="badge badge-blue">' + r.item_count + ' items</span></td></tr>'
-    ).join('') || '<tr><td colspan="5" class="empty">no runs yet</td></tr>';
-  } catch(e) { if (e.message !== 'auth') toast('stats error: ' + e.message, 'red'); }
-}
+  // bulk editor
+  bulkSearch: '', bulkCityFilter: '', bulkTypeFilter: '', bulkUntaggedOnly: false,
+  bulkDay: null,  // null = no day filter, use search endpoint
+  bulkHideTrained: localStorage.getItem('tm_bulkHideTrained') === 'true',
+  _trainedIds: new Set(JSON.parse(localStorage.getItem('tm_trainedIds')||'[]')),
+  bulkVisibleResults: [],
+  bulkResults: [], bulkSelected: [], bulkTagState: {}, bulkCustomTag: '', bulkLastClickIdx: -1,
+  get bulkUnionTags() {
+    const tags=new Set();
+    this.bulkResults.forEach(item=>{ if(this.bulkSelected.includes(item.id)) (item.tags||[]).forEach(t=>tags.add(t)); });
+    return [...tags].sort();
+  },
+  bulkSaveMsg: '',
 
-async function loadCitiesData() {
-  try { allCities = await api('/api/cities'); } catch { allCities = []; }
-  renderCitiesNav();
-  if (!currentCity && allCities.length > 0) {
-    currentCity = allCities[0].slug;
-    localStorage.setItem('tomenu_city', currentCity);
-  }
-}
+  // tag editor (kept for import session flow via modal)
+  editorMode: 'search', editorSearch: '', editorCityFilter: '',
+  editorSearchResults: [], editorCurrentItem: null,
+  editorActiveTags: [], editorSuggestedTags: [],
+  editorCustomTag: '', editorSaveMsg: '',
+  editorImportText: '', editorSessionItems: [], editorSessionIndex: 0,
+  allKnownTags: ['meat','chicken','pork','beef','fish','vegetarian','vegan',
+                 'fried','grilled','baked','steamed','pasta','rice','salad',
+                 'soup','burger','sandwich','pizza','asian','dessert',
+                 'dairy','egg','spicy','sweet','healthy'],
 
-async function loadDashboard() {
-  await loadCitiesData();
-  await loadOverview();
-}
+  // feed tag weights
+  feedTagWeights: ['meat','chicken','fish','vegetarian','fried','grilled',
+    'pasta','rice','soup','salad','spicy','sweet','healthy','asian','burger',
+  ].map(name => ({ name, value: 0 })),
 
-// ── day tabs ──────────────────────────────────────────────────────────────────
-const DAY_NAMES = ['Mon','Tue','Wed','Thu','Fri'];
+  // key
+  KEY: localStorage.getItem('tm_key') || '',
 
-function getMondayOfWeek() {
-  const d = new Date();
-  const day = d.getDay(); // 0=Sun
-  const diff = day === 0 ? -6 : 1 - day;
-  d.setDate(d.getDate() + diff);
-  d.setHours(0,0,0,0);
-  return d;
-}
+  async api(path, opts={}) {
+    const r = await fetch(path, {
+      ...opts,
+      headers: { Authorization: this.KEY, 'Content-Type':'application/json', ...(opts.headers||{}) }
+    });
+    if (r.status===401||r.status===403) { this.authed=false; throw new Error('auth'); }
+    if (!r.ok) { const e = await r.json().catch(()=>({detail:r.statusText})); throw new Error(e.detail||r.statusText); }
+    return r.json();
+  },
 
-async function buildDayTabs() {
-  const container = document.getElementById('day-tabs');
-  if (!container) return;
-  const monday = getMondayOfWeek();
-  let weekData = {};
-  try {
-    const w = await api('/api/' + currentCity + '/week');
-    w.forEach(d => { weekData[d.date] = d; });
-  } catch(e) { /* no week data yet */ }
+  async submitKey() {
+    this.gateErr=''; this.gateLoading=true;
+    try {
+      const r = await fetch('/api/cities',{headers:{Authorization:this.gateKey}});
+      if (!r.ok) { this.gateErr='invalid key'; this.gateKey=''; return; }
+      this.KEY=this.gateKey; localStorage.setItem('tm_key',this.KEY);
+      this.authed=true; this.init();
+    } catch { this.gateErr='server unreachable'; }
+    finally { this.gateLoading=false; }
+  },
 
-  container.innerHTML = '';
-  for (let i = 0; i < 5; i++) {
-    const d = new Date(monday);
-    d.setDate(d.getDate() + i);
-    const iso   = d.toISOString().slice(0,10);
-    const info  = weekData[iso];
-    const hasData = info && info.has_data;
-    const isToday = iso === new Date().toISOString().slice(0,10);
-    const isActive = iso === selectedDate;
-    const btn = document.createElement('button');
-    btn.className = 'filter-btn' + (isActive ? ' active' : '');
-    btn.style.position = 'relative';
-    btn.innerHTML = DAY_NAMES[i] +
-      '<br><span style="font-size:9px;opacity:0.6">' + iso.slice(5) + '</span>' +
-      (hasData ? '<span style="position:absolute;top:3px;right:3px;width:5px;height:5px;border-radius:50%;background:var(--blue);display:block"></span>' : '') +
-      (isToday ? '<span style="position:absolute;top:3px;left:3px;width:5px;height:5px;border-radius:50%;background:var(--green);display:block"></span>' : '');
-    btn.style.paddingTop = '6px';
-    btn.style.lineHeight = '1.3';
-    btn.style.minWidth = '48px';
-    btn.onclick = () => selectDay(iso);
-    container.appendChild(btn);
-  }
-}
+  nav(p) {
+    this.page=p;
+    if (p==='overview')     this.loadOverview();
+    if (p==='health')       this.loadHealth();
+    if (p==='bugs')         this.loadBugs();
+    if (p==='restaurants')  this.loadAllRests();
+    if (p==='ml')           { if(this.mlTab==='stats') this.loadTagStats(); if(this.mlTab==='editor') this.bulkSearchItems(); if(this.mlTab==='train') this.loadMlStatus(); }
+    if (p==='scraper')      this.loadScraperHistory();
+    if (p==='keys')         this.loadKeys();
+    if (p==='cron')         this.loadCron();
+    if (p==='ntfy')         this.loadNtfy();
+    if (p==='sysinfo')      this.loadSysInfo();
+    if (p==='feed')         this.feedCity = this.activeCity || this.cities[0]?.slug || '';
+  },
 
-function selectDay(iso) {
-  selectedDate = iso;
-  buildDayTabs();
-  loadMenus();
-}
+  selectCity(slug, name) {
+    this.activeCity=slug; this.activeCityName=name;
+    this.page='menus';
+    localStorage.setItem('tm_city',slug);
+    this.loadMenus();
+  },
 
-// ── menus ─────────────────────────────────────────────────────────────────────
-async function loadMenus() {
-  if (!currentCity) {
-    document.getElementById('restaurants-list').innerHTML = '<div class="empty">pick a city from the sidebar</div>';
-    return;
-  }
-  buildDayTabs();
-  document.getElementById('restaurants-list').innerHTML = '<div class="empty"><span class="spinner"></span>loading...</div>';
-  try {
-    const data  = await api('/admin/menus?city=' + currentCity + '&date=' + selectedDate);
-    allRestaurants = data.restaurants || [];
-    if (!allRestaurants.length) {
-      document.getElementById('restaurants-list').innerHTML = '<div class="empty">no menu data for today — try running the scraper</div>';
-      return;
+  async init() {
+    this.loadCities();
+    this.loadOverview();
+    this.bulkSearchItems();
+    this.loadBugCount();
+    this.checkStatus();
+    setInterval(()=>this.checkStatus(), 30000);
+    this.parseCron();
+  },
+
+  async checkStatus() {
+    try { await fetch('/'); this.serverOnline=true; } catch { this.serverOnline=false; }
+  },
+
+  // ── overview ────────────────────────────────────────────────────────────
+  async loadCities() {
+    try { this.cities=await this.api('/api/cities'); } catch { this.cities=[]; }
+    if (!this.activeCity && this.cities.length) {
+      this.activeCity=localStorage.getItem('tm_city')||this.cities[0].slug;
     }
-    renderRestaurants();
-  } catch(e) {
-    if (e.message !== 'auth')
-      document.getElementById('restaurants-list').innerHTML = '<div class="empty">error: ' + e.message + '</div>';
-  }
-}
+  },
 
-function renderRestaurants() {
-  const search = document.getElementById('menu-search').value.toLowerCase();
-  const list   = document.getElementById('restaurants-list');
-  let visible  = 0;
-  const html = allRestaurants.map(r => {
-    if (deliveryOnly && !r.delivery) return '';
-    const items = r.menu.filter(item => {
-      if (typeFilter !== 'all' && item.type !== typeFilter) return false;
-      if (search && !item.name?.toLowerCase().includes(search) && !item.description?.toLowerCase().includes(search)) return false;
+  async loadOverview() {
+    try {
+      this.stats=await this.api('/admin/stats');
+      // Replace whole object so Alpine tracks change reactively
+      const cnt={};
+      (this.stats.city_breakdown||[]).forEach(c=>{ cnt[c.slug]=c.items_today; });
+      this.cityItemCnt=cnt;
+      // Seed day cache with today's counts
+      if(!this._mapDayCache) this._mapDayCache={};
+      this._mapDayCache[this.mapSelectedDay]=cnt;
+      this.$nextTick(()=>this.initMap());
+    } catch(e) { if(e.message!=='auth') toast('overview error: '+e.message,'err'); }
+  },
+
+  initMap() {
+    const el=document.getElementById('sk-map');
+    if(!el||!window.L) return;
+    if(this._map) { this._map.remove(); this._map=null; }
+    const map=L.map('sk-map',{zoomControl:true,scrollWheelZoom:true,dragging:true}).setView([48.7,19.5],7);
+    this._map=map;
+    this._mapMarkers=[];
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap'}).addTo(map);
+    this._drawMapMarkers(this.cityItemCnt);
+  },
+
+  // Draw (or redraw) markers from a slug→count map — color + radius scale with item count
+  _drawMapMarkers(cnt) {
+    if(!this._map) return;
+    (this._mapMarkers||[]).forEach(m=>m.remove());
+    this._mapMarkers=[];
+    (this.cities||[]).forEach(c=>{
+      if(!c.lat||!c.lon) return;
+      const n=cnt[c.slug]||0;
+      const r=Math.max(8,Math.min(32,8+n/3));
+      const color=n>0?'#34C471':'#505070';
+      const m=L.circleMarker([c.lat,c.lon],{radius:r,color,fillColor:color,fillOpacity:0.55,weight:2})
+        .addTo(this._map).bindPopup('<strong>'+c.name+'</strong><br>'+n+' items');
+      this._mapMarkers.push(m);
+    });
+  },
+
+  // Called when a day tab is clicked
+  async updateMapMarkers() {
+    if(!this._map) return;
+    const day=this.mapSelectedDay;
+    if(!this._mapDayCache) this._mapDayCache={};
+    if(this._mapDayCache[day]){ this._drawMapMarkers(this._mapDayCache[day]); return; }
+    const cnt={};
+    await Promise.all((this.cities||[]).map(async c=>{
+      try {
+        const d=await this.api('/admin/menus?city='+c.slug+'&date='+day);
+        cnt[c.slug]=(d.restaurants||[]).reduce((s,r)=>s+(r.menu||[]).length,0);
+      } catch { cnt[c.slug]=0; }
+    }));
+    this._mapDayCache[day]=cnt;
+    this._drawMapMarkers(cnt);
+  },
+
+  // ── health ───────────────────────────────────────────────────────────────
+  async loadHealth() {
+    try {
+      if (!Object.keys(this.stats).length) this.stats=await this.api('/admin/stats');
+      const rests=await this.api('/admin/restaurants');
+      const today=new Date().toISOString().slice(0,10);
+      // FIX: also include restaurants that have never been seen (null last_seen)
+      this.missingRests=rests.filter(r=>!r.last_seen||r.last_seen<today).slice(0,30);
+    } catch(e) { if(e.message!=='auth') toast('health error','err'); }
+  },
+
+  async loadTagHealth() {
+    try { this.tagHealth=await this.api('/admin/tags'); } catch(e) { toast('error','err'); }
+  },
+
+  // ── bugs ─────────────────────────────────────────────────────────────────
+  async loadBugs() {
+    try {
+      const p=this.bugFilter==='all'?'':('?status='+this.bugFilter);
+      this.bugs=await this.api('/admin/bugs'+p);
+    } catch(e) { if(e.message!=='auth') toast('error loading bugs','err'); }
+  },
+  async loadBugCount() {
+    try {
+      const b=await this.api('/admin/bugs?status=open');
+      this.openBugCount=b.length;
+    } catch {}
+  },
+  async patchBug(id, status) {
+    try {
+      await this.api('/admin/bugs/'+id,{method:'PATCH',body:JSON.stringify({status})});
+      toast('updated','ok'); this.loadBugs(); this.loadBugCount();
+    } catch(e) { toast('error','err'); }
+  },
+
+  // ── menus ────────────────────────────────────────────────────────────────
+  async loadMenus() {
+    if (!this.activeCity) return;
+    this.buildDayTabs();
+    document.getElementById('rest-list').innerHTML='<div class="empty"><span class="spin"></span> loading...</div>';
+    try {
+      const d=await this.api('/admin/menus?city='+this.activeCity+'&date='+this.selDate);
+      this.menuData=d.restaurants||[];
+      this.renderRestaurants();
+    } catch(e) {
+      if(e.message!=='auth') document.getElementById('rest-list').innerHTML=`<div class="empty">error: ${e.message}</div>`;
+    }
+  },
+
+  selDate: new Date().toISOString().slice(0,10),
+
+  renderRestaurants() {
+    const q=this.menuSearch.toLowerCase();
+    let visible=0;
+    const html=this.menuData.map(r=>{
+      if(this.deliveryOnly&&!r.delivery) return '';
+      const items=(r.menu||[]).filter(i=>{
+        if(this.menuType!=='all'&&i.type!==this.menuType) return false;
+        if(q&&!i.name?.toLowerCase().includes(q)) return false;
+        return true;
+      });
+      if(q&&!items.length) return '';
+      visible++;
+      const rows=items.map(i=>`<tr>
+        <td class="t-${i.type}">${i.type}</td>
+        <td>
+          <div>${esc(i.name||'—')}</div>
+          ${i.description?`<div style="font-size:9px;color:var(--tx3);margin-top:2px">${esc(i.description)}</div>`:''}
+          ${renderMacros(i)?`<div style="margin-top:3px">${renderMacros(i)}</div>`:''}
+          <div style="margin-top:2px">${(i.tags||[]).map(t=>`<span class="ftag">${esc(t)}</span>`).join('')}</div>
+        </td>
+        <td class="muted">${i.weight||'—'}</td>
+        <td>${i.price_eur?i.price_eur.toFixed(2)+' €':'<span class="muted">—</span>'}</td>
+        <td>${renderAllergens(i.allergens)}</td>
+      </tr>`).join('');
+      return `<div class="rest-block">
+        <div class="rest-head" onclick="this.classList.toggle('open');this.parentElement.querySelector('.rest-body').classList.toggle('open')">
+          <span class="rest-name">${esc(r.name)}</span>
+          ${r.menu_price?`<span class="pill pill-green">from ${r.menu_price.toFixed(2)} €</span>`:''}
+          <span class="pill ${r.delivery?'pill-cyan':'pill-gray'}">${r.delivery?'delivery':'no delivery'}</span>
+          <span class="pill pill-blue">${items.length} items</span>
+          <span class="chevron">▾</span>
+        </div>
+        ${r.info?`<div class="rest-sub">${esc(r.info)}</div>`:''}
+        <div class="rest-body">
+          ${rows?`<table class="menu-tbl"><thead><tr><th>type</th><th>name</th><th>weight</th><th>price</th><th>allergens</th></tr></thead><tbody>${rows}</tbody></table>`
+                :'<div class="empty">no items match filter</div>'}
+        </div>
+      </div>`;
+    }).join('');
+    this.menuVisible=visible;
+    document.getElementById('rest-list').innerHTML=html||'<div class="empty">nothing matches</div>';
+  },
+
+  async buildDayTabs() {
+    const ct=document.getElementById('day-tabs'); if(!ct) return;
+    let wk={};
+    try { (await this.api(`/api/cities/${this.activeCity}/week`)).forEach(d=>{wk[d.date]=d;}); } catch {}
+    const today=new Date().toISOString().slice(0,10);
+    const d0=new Date(); d0.setDate(d0.getDate()-((d0.getDay()||7)-1)); d0.setHours(0,0,0,0);
+    ct.innerHTML='';
+    for(let i=0;i<5;i++){
+      const d=new Date(d0); d.setDate(d.getDate()+i);
+      const iso=d.toISOString().slice(0,10);
+      const btn=document.createElement('button');
+      btn.className='day-tab'+(iso===this.selDate?' on':'');
+      btn.innerHTML=`${DAYS[i]}<br><span style="font-size:8px;opacity:0.6">${iso.slice(5)}</span>
+        ${wk[iso]?.has_data?'<span class="day-data-dot"></span>':''}
+        ${iso===today?'<span class="day-today-dot"></span>':''}`;
+      btn.onclick=()=>{this.selDate=iso;this.buildDayTabs();this.loadMenus();};
+      ct.appendChild(btn);
+    }
+  },
+
+  // ── restaurants ──────────────────────────────────────────────────────────
+  async loadAllRests() {
+    try { this.allRests=await this.api('/admin/restaurants'); this.renderAllRests(); }
+    catch(e) { if(e.message!=='auth') toast('error','err'); }
+  },
+  renderAllRests() {
+    const q=this.restSearch.toLowerCase();
+    this.filteredRests=this.allRests.filter(r=>{
+      if(this.restFilter==='delivery'&&!r.delivery) return false;
+      if(this.restFilter==='verified'&&!r.verified) return false;
+      if(q&&!r.name.toLowerCase().includes(q)) return false;
       return true;
     });
-    if (search && !items.length) return '';
-    visible++;
-    const rows = items.map(item =>
-      '<tr><td class="type-' + item.type + '">' + item.type + '</td><td>' +
-      '<div class="item-name">' + esc(item.name||'—') + '</div>' +
-      (item.description ? '<div class="item-desc">' + esc(item.description) + '</div>' : '') +
-      renderNutrition(item.nutrition) + '</td>' +
-      '<td class="dim">' + (item.weight||'—') + '</td>' +
-      '<td>' + (item.price_eur ? item.price_eur.toFixed(2)+' €' : '<span class="dim">—</span>') + '</td>' +
-      '<td>' + renderAllergens(item.allergens) + '</td></tr>'
-    ).join('');
-    return '<div class="rest-block"><div class="rest-header" onclick="toggleRest(this)">' +
-      '<span class="rest-name">' + esc(r.name) + '</span>' +
-      (r.menu_price ? '<span class="badge badge-green">from ' + r.menu_price.toFixed(2) + ' €</span>' : '') +
-      '<span class="badge ' + (r.delivery?'badge-green':'badge-gray') + '">' + (r.delivery?'delivery':'no delivery') + '</span>' +
-      '<span class="badge badge-blue">' + items.length + ' items</span>' +
-      '<span style="color:var(--text3);font-size:14px">▾</span></div>' +
-      (r.info ? '<div class="rest-info">' + esc(r.info) + '</div>' : '') +
-      '<div class="rest-body">' +
-      (rows ? '<table class="menu-tbl"><thead><tr><th>type</th><th>name</th><th>weight</th><th>price</th><th>allergens</th></tr></thead><tbody>' + rows + '</tbody></table>' : '<div class="empty">no items match filter</div>') +
-      '</div></div>';
-  }).join('');
-  list.innerHTML = html || '<div class="empty">no restaurants match filter</div>';
-  document.getElementById('menu-count').textContent = visible + ' restaurants';
-}
+  },
 
-function toggleRest(h) { h.parentElement.querySelector('.rest-body').classList.toggle('open'); }
-function filterMenus() { renderRestaurants(); }
-function setTypeFilter(btn, type) {
-  typeFilter = type;
-  document.querySelectorAll('.filter-btn[data-type]').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  renderRestaurants();
-}
-function toggleDelivery() {
-  deliveryOnly = !deliveryOnly;
-  document.getElementById('btn-delivery').classList.toggle('active', deliveryOnly);
-  renderRestaurants();
-}
-function renderAllergens(list) {
-  if (!list||!list.length) return '<span class="dim">—</span>';
-  return list.map(n => '<span class="allergen-pill" title="' + (ALLERGEN_NAMES[n]||'') + '">' + n + '</span>').join('');
-}
-function renderNutrition(n) {
-  if (!n) return '';
-  const p = [];
-  if (n.kcal)      p.push('<span class="nutr-pill nutr-kcal">' + n.kcal + ' kcal</span>');
-  if (n.protein_g) p.push('<span class="nutr-pill">P ' + n.protein_g + 'g</span>');
-  if (n.fat_g)     p.push('<span class="nutr-pill">F ' + n.fat_g + 'g</span>');
-  if (n.carbs_g)   p.push('<span class="nutr-pill">C ' + n.carbs_g + 'g</span>');
-  return p.length ? '<div class="item-nutrition">' + p.join('') + '</div>' : '';
-}
-
-// ── restaurants ───────────────────────────────────────────────────────────────
-async function loadRestaurantsTable() {
-  try {
-    const data  = await api('/admin/restaurants');
-    const tbody = document.getElementById('rest-table-body');
-    tbody.innerHTML = data.map(r =>
-      '<tr><td><strong>' + esc(r.name) + '</strong><br><span class="dim" style="font-size:10px">' + r.slug + '</span></td>' +
-      '<td><span class="badge badge-gray">' + esc(r.city_name||'—') + '</span></td>' +
-      '<td class="dim">' + esc(r.address||'—') + '</td>' +
-      '<td class="dim">' + esc(r.phone||'—') + '</td>' +
-      '<td><span class="badge ' + (r.delivery?'badge-green':'badge-gray') + '">' + (r.delivery?'yes':'no') + '</span></td>' +
-      '<td class="dim" style="font-size:11px">' + esc(r.info||'—') + '</td></tr>'
-    ).join('') || '<tr><td colspan="6" class="empty">no restaurants</td></tr>';
-  } catch(e) { if (e.message !== 'auth') toast('Error: ' + e.message, 'red'); }
-}
-
-// ── scraper ───────────────────────────────────────────────────────────────────
-async function triggerScrape(btn) {
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spinner"></span>running...';
-  const log = document.getElementById('scrape-log');
-  if (log) log.textContent = 'starting scrape...\n';
-  try {
-    const res = await api('/admin/scrape', {method:'POST'});
-    if (log) log.textContent += '\ndone — ' + res.items_scraped + ' items scraped\nrun_id: ' + res.run_id + '\n\n' + (res.output||'');
-    toast('scraped ' + res.items_scraped + ' items', 'green');
-    await loadDashboard();
-  } catch(e) {
-    if (log && e.message !== 'auth') log.innerHTML += '\n<span class="log-err">error: ' + e.message + '</span>';
-    if (e.message !== 'auth') toast('Scrape failed: ' + e.message, 'red');
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = '↻ Run scraper';
-  }
-}
-
-async function loadScraperHistory() {
-  try {
-    const data  = await api('/admin/runs');
-    const tbody = document.getElementById('scraper-runs-body');
-    tbody.innerHTML = data.map(r =>
-      '<tr><td><span class="badge badge-gray">' + esc(r.city_name||'—') + '</span></td>' +
-      '<td>' + r.date + '</td><td class="dim">' + r.day + '</td>' +
-      '<td class="dim">' + r.scraped_at.replace('T',' ').slice(0,19) + '</td>' +
-      '<td><span class="badge badge-blue">' + r.item_count + ' items</span></td></tr>'
-    ).join('') || '<tr><td colspan="5" class="empty">no runs yet</td></tr>';
-  } catch(e) { if (e.message !== 'auth') toast('Error: ' + e.message, 'red'); }
-}
-
-// ── api keys ──────────────────────────────────────────────────────────────────
-async function loadKeys() {
-  try {
-    const keys  = await api('/admin/keys');
-    const tbody = document.getElementById('keys-body');
-    tbody.innerHTML = keys.map(k =>
-      '<tr><td class="dim">' + k.id + '</td>' +
-      '<td><strong>' + esc(k.label||'—') + '</strong></td>' +
-      '<td class="dim">' + k.created_at.slice(0,10) + '</td>' +
-      '<td class="dim">' + (k.last_used?k.last_used.slice(0,16).replace('T',' '):'never') + '</td>' +
-      '<td><span class="badge ' + (k.active?'badge-green':'badge-red') + '">' + (k.active?'active':'revoked') + '</span></td>' +
-      '<td>' + (k.active?'<button class="btn btn-red" onclick="revokeKey(' + k.id + ',this)" style="padding:3px 8px;font-size:10px">revoke</button>':'') + '</td></tr>'
-    ).join('') || '<tr><td colspan="6" class="empty">no keys</td></tr>';
-  } catch(e) { if (e.message !== 'auth') toast('Error: ' + e.message, 'red'); }
-}
-
-function openNewKeyModal() {
-  document.getElementById('key-label-input').value = '';
-  document.getElementById('key-result').style.display = 'none';
-  document.getElementById('modal-confirm').style.display = '';
-  document.getElementById('modal-overlay').classList.add('open');
-}
-function closeModal() {
-  document.getElementById('modal-overlay').classList.remove('open');
-  loadKeys();
-}
-async function createKey() {
-  const label = document.getElementById('key-label-input').value.trim();
-  if (!label) { toast('enter a label', 'red'); return; }
-  try {
-    const res = await api('/admin/keys', {method:'POST', body:JSON.stringify({label})});
-    document.getElementById('key-value').textContent = res.key;
-    document.getElementById('key-result').style.display = 'block';
-    document.getElementById('modal-confirm').style.display = 'none';
-    toast('key created — copy it now!', 'green');
-  } catch(e) { if (e.message !== 'auth') toast('Error: ' + e.message, 'red'); }
-}
-function copyKey() {
-  navigator.clipboard.writeText(document.getElementById('key-value').textContent)
-    .then(() => toast('copied!', 'green'));
-}
-async function revokeKey(id, btn) {
-  if (!confirm('Revoke key #' + id + '?')) return;
-  btn.disabled = true;
-  try {
-    await api('/admin/keys/' + id, {method:'DELETE'});
-    toast('key revoked', 'green');
-    loadKeys();
-  } catch(e) { if (e.message !== 'auth') toast('Error: ' + e.message, 'red'); btn.disabled = false; }
-}
-
-// ── utils ─────────────────────────────────────────────────────────────────────
-function esc(str) {
-  return String(str||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
-
-// ── i18n ─────────────────────────────────────────────────────────────────────
-// Translations live in /webUI/locales/{lang}.json
-// FastAPI serves /webUI/ as static files so /locales/en.json works directly.
-
-const SUPPORTED_LANGS = ['en', 'sk', 'cs'];
-let uiLang = 'en';
-let T = {};
-
-function detectUiLang() {
-  const saved = localStorage.getItem('tomenu_lang');
-  if (saved && SUPPORTED_LANGS.includes(saved)) return saved;
-  const browser = (navigator.language || 'en').toLowerCase();
-  if (browser.startsWith('sk')) return 'sk';
-  if (browser.startsWith('cs')) return 'cs';
-  return 'en';
-}
-
-async function loadUiLang(lang) {
-  try {
-    const res = await fetch(`/locales/${lang}.json`);
-    if (!res.ok) throw new Error();
-    T = await res.json();
-    uiLang = lang;
-    localStorage.setItem('tomenu_lang', lang);
-  } catch {
-    if (lang !== 'en') {
-      const res = await fetch('/locales/en.json');
-      T = await res.json();
-      uiLang = 'en';
-    }
-  }
-}
-
-function ui(key) {
-  return T[key] ?? key;
-}
-
-function applyUiLang() {
-  // elements with data-i18n (text content)
-  document.querySelectorAll('[data-i18n]').forEach(el => {
-    const k = el.dataset.i18n;
-    if (!k) return;
-    if (el.tagName === 'INPUT') {
-      el.placeholder = ui(k);
-    } else {
-      el.textContent = ui(k);
-    }
-  });
-
-  // nav items: keep the icon span, replace only the text node after it
-  document.querySelectorAll('.nav-item[data-i18n]').forEach(el => {
-    const icon = el.querySelector('.icon');
-    const key  = el.dataset.i18n;
-    el.childNodes.forEach(n => {
-      if (n.nodeType === 3 /* TEXT_NODE */) n.textContent = ' ' + ui(key);
+  // ── ml tester ────────────────────────────────────────────────────────────
+  runTests() {
+    let earned=0,maxScore=0,bonus=0;
+    const results=TEST_CASES.map(tc=>{
+      const tags=autoTag(tc.name,tc.type,tc.desc||'');
+      const tagSet=new Set(tags);
+      const got_exp=tc.expected.filter(t=>tagSet.has(t));
+      const missed=tc.expected.filter(t=>!tagSet.has(t));
+      const got_neu=tc.neutral.filter(t=>tagSet.has(t));
+      const wrong=tags.filter(t=>!tc.expected.includes(t)&&!tc.neutral.includes(t));
+      earned+=got_exp.length; maxScore+=tc.expected.length; bonus+=got_neu.length;
+      const status=missed.length===0?(wrong.length?'mixed':'pass'):'fail';
+      return {tc,tags,got_exp,missed,got_neu,wrong,pts:got_exp.length,max:tc.expected.length,bonus:got_neu.length,status};
     });
-  });
+    const pct=maxScore>0?Math.round(earned/maxScore*100):0;
+    this.mlScore=pct;
+    this.mlScoreMeta=`${earned}/${maxScore} required · +${bonus} bonus`;
+    this.mlBreakdown=`${results.filter(r=>r.status==='pass').length} pass · ${results.filter(r=>r.status==='mixed').length} pass+wrong · ${results.filter(r=>r.status==='fail').length} fail out of ${TEST_CASES.length} cases`;
+    document.getElementById('ml-results').innerHTML=results.map(r=>`
+      <div class="test-item ${r.status}">
+        <div class="test-name">${r.tc.name} <span style="font-size:10px;color:var(--tx3)">[${r.tc.type}]</span>
+          <span style="float:right;font-size:11px;color:${r.pts===r.max?'var(--green)':'var(--red)'}">${r.pts}/${r.max}${r.bonus?'+'+r.bonus:''}</span>
+        </div>
+        <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:6px">
+          <div>
+            <div style="font-size:9px;color:var(--tx3);margin-bottom:3px">GOT</div>
+            <div class="pill-group">${r.tags.map(t=>{
+              const cls=r.tc.expected.includes(t)?'pill-green':r.tc.neutral.includes(t)?'pill-amber':'pill-red';
+              return `<span class="pill ${cls} pill-round">${t}</span>`;
+            }).join('')||'<span style="color:var(--tx3);font-size:10px">none</span>'}</div>
+          </div>
+          ${r.missed.length?`<div><div style="font-size:9px;color:var(--tx3);margin-bottom:3px">MISSED</div>
+            <div class="pill-group">${r.missed.map(t=>`<span class="pill pill-gray pill-round" style="text-decoration:line-through">${t}</span>`).join('')}</div></div>`:''}
+          ${r.wrong.length?`<div><div style="font-size:9px;color:var(--tx3);margin-bottom:3px">UNEXPECTED</div>
+            <div class="pill-group">${r.wrong.map(t=>`<span class="pill pill-red pill-round">${t}</span>`).join('')}</div></div>`:''}
+        </div>
+      </div>`).join('');
+  },
 
-  // update lang toggle button — shows current lang uppercased from uiLang
-  const btn = document.getElementById('lang-toggle');
-  if (btn) btn.textContent = uiLang.toUpperCase();
+  async runTestsMl() {
+    if(!this.mlModelStatus.trained) return;
+    this.mlTestingML=true; this.mlResultsML=false;
+    const el=document.getElementById('ml-results-ml');
+    if(el) el.innerHTML='<div class="empty"><span class="spin"></span> running ML on '+TEST_CASES.length+' cases...</div>';
 
-  document.documentElement.lang = uiLang;
-}
+    // Run all test cases through the ML API in parallel
+    const predictions = await Promise.all(TEST_CASES.map(async tc=>{
+      try {
+        const params=new URLSearchParams({name:tc.name,dish_type:tc.type,description:tc.desc||''});
+        const d=await this.api('/admin/ml/predict?'+params);
+        return d.tags||[];
+      } catch {
+        return autoTag(tc.name,tc.type,tc.desc||'');
+      }
+    }));
 
-async function toggleLang() {
-  const cycle = { en: 'sk', sk: 'cs', cs: 'en' };
-  const next  = cycle[uiLang] || 'en';
-  await loadUiLang(next);
-  applyUiLang();
-}
+    let earned=0,maxScore=0,bonus=0;
+    const results=TEST_CASES.map((tc,i)=>{
+      const tags=predictions[i];
+      const tagSet=new Set(tags);
+      const got_exp=tc.expected.filter(t=>tagSet.has(t));
+      const missed=tc.expected.filter(t=>!tagSet.has(t));
+      const got_neu=tc.neutral.filter(t=>tagSet.has(t));
+      const wrong=tags.filter(t=>!tc.expected.includes(t)&&!tc.neutral.includes(t));
+      earned+=got_exp.length; maxScore+=tc.expected.length; bonus+=got_neu.length;
+      const status=missed.length===0?(wrong.length?'mixed':'pass'):'fail';
+      return {tc,tags,got_exp,missed,got_neu,wrong,pts:got_exp.length,max:tc.expected.length,bonus:got_neu.length,status};
+    });
 
+    const pct=maxScore>0?Math.round(earned/maxScore*100):0;
+    this.mlScoreML=pct;
+    this.mlScoreMLMeta=`${earned}/${maxScore} required · +${bonus} bonus`;
+    this.mlBreakdownML=`ML: ${results.filter(r=>r.status==='pass').length} pass · ${results.filter(r=>r.status==='mixed').length} pass+wrong · ${results.filter(r=>r.status==='fail').length} fail`;
+    this.mlResultsML=true;
+    this.mlTestingML=false;
 
-// ── init ──────────────────────────────────────────────────────────────────────
-document.getElementById('topbar-date').textContent = new Date().toLocaleDateString('en-GB', {
-  weekday:'short', day:'2-digit', month:'short', year:'numeric'
-});
-checkStatus();
-setInterval(checkStatus, 30000);
+    if(el) el.innerHTML=results.map(r=>`
+      <div class="test-item ${r.status}">
+        <div class="test-name">${r.tc.name} <span style="font-size:10px;color:var(--tx3)">[${r.tc.type}]</span>
+          <span style="float:right;font-size:11px;color:${r.pts===r.max?'var(--green)':'var(--red)'}">${r.pts}/${r.max}${r.bonus?'+'+r.bonus:''}</span>
+        </div>
+        <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:6px">
+          <div>
+            <div style="font-size:9px;color:var(--cyan);margin-bottom:3px">ML GOT</div>
+            <div class="pill-group">${r.tags.map(t=>{
+              const cls=r.tc.expected.includes(t)?'pill-green':r.tc.neutral.includes(t)?'pill-amber':'pill-red';
+              return `<span class="pill ${cls} pill-round">${t}</span>`;
+            }).join('')||'<span style="color:var(--tx3);font-size:10px">none</span>'}</div>
+          </div>
+          ${r.missed.length?`<div><div style="font-size:9px;color:var(--tx3);margin-bottom:3px">MISSED</div>
+            <div class="pill-group">${r.missed.map(t=>`<span class="pill pill-gray pill-round" style="text-decoration:line-through">${t}</span>`).join('')}</div></div>`:''}
+          ${r.wrong.length?`<div><div style="font-size:9px;color:var(--tx3);margin-bottom:3px">UNEXPECTED</div>
+            <div class="pill-group">${r.wrong.map(t=>`<span class="pill pill-red pill-round">${t}</span>`).join('')}</div></div>`:''}
+        </div>
+      </div>`).join('');
+  },
 
-(async () => {
-  uiLang = detectUiLang();
-  await loadUiLang(uiLang);
-  applyUiLang();
+  liveTag() {
+    const tags = autoTag(this.liveName, this.liveType, this.liveDesc);
+    const el=document.getElementById('live-tag-output');
+    const re=document.getElementById('live-tag-reasoning');
+    if(!tags.length){el.innerHTML='<span style="color:var(--tx3);font-size:11px">no tags detected</span>';re.innerHTML='';return;}
+    el.innerHTML=tags.map(t=>`<span class="pill pill-cyan pill-round">${t}</span>`).join('');
+    const text=(this.liveName+' '+this.liveDesc).toLowerCase();
+    const reasons=[];
+    if(MEAT_KW.some(k=>text.includes(k))) reasons.push(`<span style="color:var(--green)">meat</span> ← "${MEAT_KW.find(k=>text.includes(k))}"`);
+    if(FISH_KW.some(k=>text.includes(k))) reasons.push(`<span style="color:var(--green)">fish</span> ← "${FISH_KW.find(k=>text.includes(k))}"`);
+    re.innerHTML=reasons.join(' &nbsp;|&nbsp; ');
+  },
 
-  if (API_KEY) {
-    loadDashboard();
-  } else {
-    showKeyGate();
+  async liveTagMl() {
+    const el=document.getElementById('live-tag-ml-output');
+    const sc=document.getElementById('live-tag-ml-scores');
+    if(!el) return;
+    if(!this.mlModelStatus.trained){
+      el.innerHTML='<span style="color:var(--tx3);font-size:11px">no model trained yet — go to Train tab</span>';
+      return;
+    }
+    if(!this.liveName.trim()){
+      el.innerHTML='<span style="color:var(--tx3);font-size:11px">type a dish name above</span>';
+      if(sc) sc.innerHTML='';
+      return;
+    }
+    try {
+      const params=new URLSearchParams({
+        name: this.liveName,
+        dish_type: this.liveType,
+        description: this.liveDesc,
+      });
+      const d=await this.api('/admin/ml/predict?'+params);
+      if(!d.tags?.length){
+        el.innerHTML='<span style="color:var(--tx3);font-size:11px">no tags predicted</span>';
+        if(sc) sc.innerHTML='';
+        return;
+      }
+      const ruleSet=new Set(autoTag(this.liveName,this.liveType,this.liveDesc));
+      el.innerHTML=d.tags.map(t=>{
+        const isNew=!ruleSet.has(t);
+        return `<span class="pill pill-round" style="${isNew?'border-color:var(--cyan);color:var(--cyan)':'border-color:var(--border2);color:var(--tx3)'}">${t}${isNew?' ✦':''}</span>`;
+      }).join('');
+      // Score bars
+      if(sc && d.scores) {
+        const entries=Object.entries(d.scores).sort((a,b)=>b[1]-a[1]).slice(0,10);
+        sc.innerHTML=entries.map(([tag,prob])=>`
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px">
+            <div style="width:70px;font-size:10px;color:var(--cyan);flex-shrink:0">${tag}</div>
+            <div style="flex:1;background:var(--bg2);border-radius:2px;height:10px;overflow:hidden">
+              <div style="width:${Math.round(prob*100)}%;height:100%;background:${prob>=0.6?'var(--green)':prob>=0.4?'var(--amber)':'var(--tx3)'}"></div>
+            </div>
+            <span style="font-size:9px;color:var(--tx3);width:30px;text-align:right">${Math.round(prob*100)}%</span>
+          </div>`).join('');
+      }
+      // Show source badge
+      const src=d.source||'ml+rules';
+      el.innerHTML+=` <span class="pill pill-gray" style="font-size:8px">${src}</span>`;
+    } catch(e) {
+      el.innerHTML=`<span style="color:var(--red);font-size:11px">error: ${e.message}</span>`;
+    }
+  },
+
+  // ── ML train tab ──────────────────────────────────────────────────────────
+  async loadMlStatus() {
+    try { this.mlModelStatus=await this.api('/admin/ml/status'); }
+    catch(e) { if(e.message!=='auth') this.mlModelStatus={trained:false}; }
+    await this.loadMlExamples();
+  },
+
+  async loadMlExamples() {
+    try {
+      const d=await this.api('/admin/ml/examples?limit=100');
+      this.mlExamples=d.examples||[];
+    } catch { this.mlExamples=[]; }
+  },
+
+  async trainModel() {
+    this.mlTraining=true; this.mlTrainResult=null;
+    try {
+      const result=await this.api('/admin/ml/train',{method:'POST'});
+      this.mlTrainResult=result;
+      this.mlModelStatus={...this.mlModelStatus,...result,trained:true};
+      toast('model trained — '+result.labels+' tag classes, '+result.examples+' examples','ok');
+    } catch(e) {
+      if(e.message!=='auth') toast('training failed: '+e.message,'err');
+    } finally { this.mlTraining=false; }
+  },
+
+  async loadTagViz() {
+    try { this.tagVizData=await this.api('/admin/tags'); } catch(e) { toast('error','err'); }
+  },
+
+  async loadTags() {
+    try {
+      const d=await this.api('/admin/tags');
+      this.tagList=d.tags||[];
+    } catch(e) { toast('tags error: '+e.message,'err'); }
+  },
+
+  async showTagDetail(tag) {
+    this.tagDetailTag=tag; this.tagDetailItems=[];
+    try {
+      const d=await this.api('/admin/tags/'+encodeURIComponent(tag));
+      this.tagDetailItems=d.items||[];
+    } catch(e) { toast('error','err'); }
+  },
+
+  // ── feed ─────────────────────────────────────────────────────────────────
+  async loadFeedPreview() {
+    try {
+      const weights={};
+      this.feedTagWeights.forEach(t=>{if(t.value!==0) weights[t.name]=t.value;});
+      const hasWeights=Object.keys(weights).length>0;
+      const weightStr=Object.entries(weights).map(([k,v])=>k+':'+v).join(',');
+      const url='/api/feed?city='+this.feedCity+'&user_id=1&limit='+this.feedLimit+(weightStr?'&weights='+encodeURIComponent(weightStr):'');
+      const d=await this.api(url);
+      // Attach _score so each card can show a match/mismatch badge
+      this.feedItems=(d.items||[]).map(item=>{
+        if(!hasWeights) return {...item, _score:undefined};
+        const score=this.feedTagWeights.reduce((sum,w)=>{
+          return sum+((item.tags||[]).includes(w.name)?w.value:0);
+        },0);
+        return {...item, _score:Math.round(score)};
+      });
+      if(!this.feedItems.length) toast('no items — no data for this city/date','err');
+    } catch(e) { if(e.message!=='auth') toast('error: '+e.message,'err'); }
+  },
+
+  // ── scraper ──────────────────────────────────────────────────────────────
+  async triggerScrape() {
+    this.scraping=true; this.scrapeOutput='starting...\n';
+    try {
+      const r=await this.api('/admin/scrape',{method:'POST'});
+      this.scrapeOutput+=`\ndone — ${r.items_scraped} items  run_id=${r.run_id}\n\n${r.output||''}`;
+      toast(`scraped ${r.items_scraped} items`,'ok');
+      this.loadOverview();
+    } catch(e) {
+      if(e.message!=='auth') { this.scrapeOutput+='\nerror: '+e.message; toast('scrape failed','err'); }
+    } finally { this.scraping=false; }
+  },
+
+  toggleScrapeDay(d) {
+    const i=this.scrapeSelectedDays.indexOf(d);
+    if(i===-1) this.scrapeSelectedDays.push(d);
+    else this.scrapeSelectedDays.splice(i,1);
+  },
+
+  async triggerScrapeSelected() {
+    if(!this.scrapeSelectedDays.length) return;
+    this.scraping=true;
+    this.scrapeOutput='starting for: '+this.scrapeSelectedDays.join(', ')+'...\n';
+    try {
+      const r=await this.api('/admin/scrape-days',{method:'POST',body:JSON.stringify({days:this.scrapeSelectedDays})});
+      this.scrapeOutput+=`\ndone — run_id=${r.run_id}\n${r.output||''}`;
+      toast('scraped '+this.scrapeSelectedDays.join('+'),'ok');
+      this.loadOverview();
+    } catch(e) {
+      if(e.message!=='auth') { this.scrapeOutput+='\nerror: '+e.message; toast('failed','err'); }
+    } finally { this.scraping=false; }
+  },
+
+  async loadScraperHistory() {
+    try {
+      this.scraperHistory=await this.api('/admin/runs');
+      const s=await this.api('/admin/stats');
+      this.scrapeLog=s.scrape_log||[];
+    } catch(e) { if(e.message!=='auth') toast('error','err'); }
+  },
+
+  // ── api keys ─────────────────────────────────────────────────────────────
+  async loadKeys() {
+    try { this.apiKeys=await this.api('/admin/keys'); } catch(e) { if(e.message!=='auth') toast('error','err'); }
+  },
+  openNewKey() { this.newKeyLabel=''; this.newKeyValue=''; this.modal='newkey'; },
+  async createKey() {
+    if(!this.newKeyLabel.trim()) { toast('enter a label','err'); return; }
+    try {
+      const r=await this.api('/admin/keys',{method:'POST',body:JSON.stringify({label:this.newKeyLabel})});
+      this.newKeyValue=r.key; toast('key created','ok'); this.loadKeys();
+    } catch(e) { if(e.message!=='auth') toast('error','err'); }
+  },
+  async revokeKey(id) {
+    if(!confirm(`Revoke key #${id}?`)) return;
+    try { await this.api('/admin/keys/'+id,{method:'DELETE'}); toast('revoked','ok'); this.loadKeys(); }
+    catch(e) { if(e.message!=='auth') toast('error','err'); }
+  },
+
+  // ── cron ─────────────────────────────────────────────────────────────────
+  async loadCron() {
+    try { const s=await this.api('/admin/system'); this.cronSchedule=s.cron_schedule||'0 6,12,18,0 * * 1-5'; this.parseCron(); } catch {}
+  },
+  parseCron() {
+    const parts=this.cronSchedule.trim().split(/\s+/);
+    this.cronParts=parts.length===5?parts:[];
+    if(parts.length===5) {
+      const wd={'1-5':'Mon–Fri','*':'every day','1':'Mon','5':'Fri'};
+      this.cronDesc=`Runs at minute ${parts[0]}, hour(s) ${parts[1]}, ${wd[parts[4]]||parts[4]}.`;
+    } else { this.cronDesc='invalid — need 5 fields'; }
+  },
+  async saveCron() {
+    if(this.cronParts.length!==5) { toast('invalid cron expression','err'); return; }
+    try {
+      await this.api('/admin/cron',{method:'PATCH',body:JSON.stringify({schedule:this.cronSchedule})});
+      this.cronMsg='saved — restart server to apply'; this.cronSaved=true;
+      toast('schedule saved','ok');
+    } catch(e) { this.cronMsg='error: '+e.message; this.cronSaved=false; }
+  },
+
+  // ── ntfy ─────────────────────────────────────────────────────────────────
+  async loadNtfy() {
+    try { const d=await this.api('/admin/ntfy'); Object.assign(this.ntfy,d); } catch {}
+  },
+  async saveNtfy() {
+    try {
+      await this.api('/admin/ntfy',{method:'PATCH',body:JSON.stringify(this.ntfy)});
+      this.ntfyMsg='saved'; toast('ntfy config saved','ok');
+    } catch(e) { toast('error','err'); }
+  },
+  async testNtfy() {
+    this.ntfyMsg='';
+    try {
+      await this.api('/admin/ntfy/test',{method:'POST'});
+      this.ntfyMsg='✓ test sent — check your ntfy app';
+      toast('test notification sent','ok');
+    } catch(e) {
+      this.ntfyMsg='✗ failed: '+(e.message||'unknown error');
+      toast('ntfy test failed: '+e.message,'err');
+    }
+  },
+
+  // ── system ────────────────────────────────────────────────────────────────
+  async loadSysInfo() {
+    try { this.sysInfo=await this.api('/admin/system'); } catch(e) { if(e.message!=='auth') toast('error','err'); }
+  },
+
+  // ── health check ─────────────────────────────────────────────────────────
+  async runHealthCheck() {
+    this.healthRunning=true; this.healthResults=null;
+    try { this.healthResults=await this.api('/admin/health-check'); }
+    catch(e) { if(e.message!=='auth') toast('health check error: '+e.message,'err'); }
+    finally { this.healthRunning=false; }
+  },
+
+  // ── tag editor ────────────────────────────────────────────────────────────
+  async searchEditorItems() {
+    const q=this.editorSearch.trim();
+    const city=this.editorCityFilter?'&city='+this.editorCityFilter:'';
+    // When empty, load a default batch using % wildcard (matches everything)
+    const qParam=q.length>=2 ? encodeURIComponent(q) : '%25';
+    if(q.length>0 && q.length<2){this.editorSearchResults=[];return;}
+    try {
+      const d=await this.api('/admin/menu-items/search?q='+qParam+city);
+      this.editorSearchResults=d.items||[];
+    } catch(e) { if(e.message!=='auth') toast('search error','err'); }
+  },
+  openTagEditor(item) {
+    this.editorCurrentItem=item;
+    this.editorSuggestedTags=autoTag(item.name,item.type||'main',item.description||'');
+    this.editorActiveTags=[...(item.tags||[])];
+    this.editorCustomTag=''; this.editorSaveMsg='';
+    this.modal='tageditor';
+  },
+  toggleEditorTag(tag) {
+    const i=this.editorActiveTags.indexOf(tag);
+    if(i===-1) this.editorActiveTags.push(tag);
+    else this.editorActiveTags.splice(i,1);
+  },
+  addCustomTag() {
+    const t=this.editorCustomTag.trim().toLowerCase().replace(/\s+/g,'_');
+    if(!t) return;
+    if(!this.editorActiveTags.includes(t)) this.editorActiveTags.push(t);
+    if(!this.allKnownTags.includes(t)) this.allKnownTags.push(t);
+    this.editorCustomTag='';
+  },
+  async saveEditorTags(asTrainingExample) {
+    if(!this.editorCurrentItem) return;
+    const itemId=this.editorCurrentItem.id;
+    if(!itemId) {
+      this.editorSaveMsg='imported item — no DB id';
+      setTimeout(()=>{this.editorSaveMsg='';this.nextSessionItem();},1200);
+      return;
+    }
+    try {
+      await this.api('/admin/menu-items/'+itemId+'/tags',{
+        method:'PATCH',
+        body:JSON.stringify({tags:this.editorActiveTags,training_example:asTrainingExample}),
+      });
+      this.editorSaveMsg=asTrainingExample?'✓ saved as training example':'✓ tags saved';
+      const idx=this.editorSearchResults.findIndex(r=>r.id===itemId);
+      if(idx!==-1) this.editorSearchResults[idx].tags=[...this.editorActiveTags];
+      toast(asTrainingExample?'saved as training example':'tags updated','ok');
+      if(this.editorSessionItems.length>0) {
+        setTimeout(()=>this.nextSessionItem(),800);
+      } else {
+        setTimeout(()=>{this.editorSaveMsg=''; this.modal=null; this.editorCurrentItem=null;},1200);
+      }
+    } catch(e) { if(e.message!=='auth') toast('save failed: '+e.message,'err'); }
+  },
+  startImportSession() {
+    const lines=this.editorImportText.split('\n').map(l=>l.trim()).filter(l=>l.length>0);
+    this.editorSessionItems=lines.map(l=>{
+      const [name,...rest]=l.split(/[,\t]/);
+      return {id:null,name:name.trim(),description:rest.join(', ').trim()||null,type:'main',tags:[],restaurant_name:'(imported)'};
+    });
+    if(!this.editorSessionItems.length){toast('no dishes to tag','err');return;}
+    this.editorSessionIndex=0;
+    this.openTagEditor(this.editorSessionItems[0]);
+  },
+  nextSessionItem() {
+    this.editorSessionIndex++;
+    if(this.editorSessionIndex>=this.editorSessionItems.length){
+      this.editorCurrentItem=null; this.editorSessionItems=[];
+      this.modal=null;
+      toast('session complete','ok'); return;
+    }
+    this.openTagEditor(this.editorSessionItems[this.editorSessionIndex]);
+  },
+
+  // ── feed presets ──────────────────────────────────────────────────────────
+  applyFeedPreset(preset) {
+    const presets={
+      meat:{meat:80,chicken:60,pork:50,beef:50,fish:20,vegetarian:-60},
+      veg:{vegetarian:90,vegan:70,meat:-80,chicken:-80,fish:-60},
+      healthy:{healthy:90,salad:70,vegetarian:50,fried:-80,sweet:-60},
+    };
+    // FIX: default to empty object so Object.entries doesn't throw on unknown preset
+    const p=presets[preset]||{};
+    this.feedTagWeights.forEach(t=>{t.value=p[t.name]??0;});
+  },
+
+  // ── utils ─────────────────────────────────────────────────────────────────
+  copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(()=>toast('copied!','ok'));
+  },
+
+  // ── tag stats (merged visualizer + inspector) ─────────────────────────────
+  async loadTagStats() {
+    this.tagStatsData=null; this.tagStatsSelected=null; this.tagStatsItems=[];
+    try { this.tagStatsData=await this.api('/admin/tags'); }
+    catch(e) { if(e.message!=='auth') toast('tag stats error','err'); }
+  },
+
+  async showTagDetail(tag) {
+    this.tagStatsSelected=tag; this.tagStatsItems=[]; this.tagStatsLoading=true;
+    try {
+      if(tag==='__untagged__') {
+        // Fetch items with no tags via search with empty tag filter
+        const city=this.bulkCityFilter?'&city='+this.bulkCityFilter:'';
+        const d=await this.api('/admin/menu-items/search?q=%25'+city+'&limit=100');
+        this.tagStatsItems=(d.items||[]).filter(i=>!i.tags||i.tags.length===0);
+      } else {
+        const d=await this.api('/admin/tags/'+encodeURIComponent(tag)+'?limit=100');
+        this.tagStatsItems=d.items||[];
+      }
+    } catch(e) { if(e.message!=='auth') toast('error loading items','err'); }
+    finally { this.tagStatsLoading=false; }
+  },
+
+  // Jump from the stats panel into bulk editor pre-loaded with a tag's items
+  async bulkFromTag(tag) {
+    this.mlTab='editor';
+    this.bulkSearch=''; this.bulkResults=[]; this.bulkSelected=[];
+    this.bulkTagState={};
+    // Load items for this tag then auto-select them all
+    try {
+      const d=await this.api('/admin/tags/'+encodeURIComponent(tag)+'?limit=100');
+      this.bulkResults=d.items||[];
+      this._recomputeVisible();
+      this.bulkSelected=this.bulkResults.map(i=>i.id).filter(Boolean);
+      toast(this.bulkSelected.length+' items loaded and selected','ok');
+    } catch(e) { if(e.message!=='auth') toast('error','err'); }
+  },
+
+  // ── bulk editor ───────────────────────────────────────────────────────────
+  _recomputeVisible() {
+    // Stamp _trained from the persistent Set so it survives searches/refreshes
+    this.bulkResults.forEach(i => { if(this._trainedIds.has(i.id)) i._trained=true; });
+    this.bulkVisibleResults = this.bulkHideTrained
+      ? this.bulkResults.filter(i => !i._trained)
+      : [...this.bulkResults];
+  },
+
+  async bulkSearchItems() {
+    const q=this.bulkSearch.trim();
+    const qParam=q.length>=2?encodeURIComponent(q):'%25';
+    if(q.length>0&&q.length<2) return;
+    // Resolve city: prefer explicit filter, then activeCity, then first available city
+    const city=this.bulkCityFilter||this.activeCity||this.cities[0]?.slug||'';
+    try {
+      let items=[];
+      if(this.bulkDay && city) {
+        // Day mode: fetch full menu for that city+day, then filter client-side
+        const m=await this.api('/admin/menus?city='+city+'&date='+this.bulkDay);
+        (m.restaurants||[]).forEach(r=>{
+          (r.menu||[]).forEach(i=>{
+            items.push({...i, id: i.id ?? (r.name+'_'+i.name), restaurant_name:r.name, city_slug:city});
+          });
+        });
+        if(q.length>=2) items=items.filter(i=>i.name?.toLowerCase().includes(q.toLowerCase()));
+      } else {
+        // No day filter — use search endpoint (searches across all scraped data)
+        const cityParam=this.bulkCityFilter?'&city='+this.bulkCityFilter:'';
+        const d=await this.api('/admin/menu-items/search?q='+qParam+cityParam+'&limit=50');
+        items=d.items||[];
+      }
+      if(this.bulkUntaggedOnly) items=items.filter(i=>!i.tags||i.tags.length===0);
+      if(this.bulkTypeFilter)   items=items.filter(i=>i.type===this.bulkTypeFilter);
+      this.bulkResults=items;
+      this.bulkLastClickIdx=-1;
+      this.bulkTagState={};
+      this._recomputeVisible();
+    } catch(e) { if(e.message!=='auth') toast('search error: '+e.message,'err'); }
+  },
+
+  bulkToggleItem(id, event, clickedIdx) {
+    if(event && event.shiftKey && this.bulkLastClickIdx !== -1 && clickedIdx !== undefined) {
+      const lo=Math.min(this.bulkLastClickIdx, clickedIdx);
+      const hi=Math.max(this.bulkLastClickIdx, clickedIdx);
+      // shouldSelect is based on the CLICKED item — if it's not selected, select the range; if it is, deselect
+      const shouldSelect=!this.bulkSelected.includes(id);
+      for(let i=lo; i<=hi; i++){
+        const rid=this.bulkResults[i]?.id;
+        if(rid == null) continue;
+        const existing=this.bulkSelected.indexOf(rid);
+        if(shouldSelect && existing===-1) this.bulkSelected.push(rid);
+        else if(!shouldSelect && existing!==-1) this.bulkSelected.splice(existing,1);
+      }
+      // Keep anchor at last normal click, don't move it on shift-click
+      return;
+    }
+    // Normal click — toggle and record new anchor
+    const i=this.bulkSelected.indexOf(id);
+    if(i===-1) this.bulkSelected.push(id);
+    else this.bulkSelected.splice(i,1);
+    if(clickedIdx !== undefined) this.bulkLastClickIdx=clickedIdx;
+  },
+
+  bulkSelectAll() {
+    this.bulkSelected=this.bulkResults.map(i=>i.id).filter(Boolean);
+  },
+
+  bulkClearSelection() {
+    this.bulkSelected=[];
+    this.bulkTagState={};
+  },
+
+  bulkSetTag(tag, state) {
+    this.bulkTagState={...this.bulkTagState,[tag]:state};
+  },
+
+  bulkUnsetTag(tag) {
+    const s={...this.bulkTagState}; delete s[tag]; this.bulkTagState=s;
+  },
+
+  bulkAddCustomTag() {
+    const t=this.bulkCustomTag.trim().toLowerCase().replace(/\s+/g,'_');
+    if(!t) return;
+    if(!this.allKnownTags.includes(t)) this.allKnownTags.push(t);
+    this.bulkTagState={...this.bulkTagState,[t]:'add'};
+    this.bulkCustomTag='';
+  },
+
+  async bulkSaveTags(asTraining) {
+    if(!this.bulkSelected.length) return;
+    const toAdd   =Object.entries(this.bulkTagState).filter(([,s])=>s==='add').map(([t])=>t);
+    const toRemove=Object.entries(this.bulkTagState).filter(([,s])=>s==='remove').map(([t])=>t);
+    let saved=0, failed=0;
+
+    // Build per-item final tag list: start from existing, apply adds and removes
+    const itemTagMap={};
+    this.bulkResults.forEach(item=>{
+      if(!this.bulkSelected.includes(item.id)) return;
+      const tags=new Set(item.tags||[]);
+      toAdd.forEach(t=>tags.add(t));
+      toRemove.forEach(t=>tags.delete(t));
+      itemTagMap[item.id]=[...tags].sort();
+    });
+
+    await Promise.all(
+      Object.entries(itemTagMap).map(async ([id,tags])=>{
+        try {
+          await this.api('/admin/menu-items/'+id+'/tags',{
+            method:'PATCH',
+            body:JSON.stringify({tags,training_example:asTraining}),
+          });
+          const idx=this.bulkResults.findIndex(r=>r.id===parseInt(id));
+          if(idx!==-1) {
+            this.bulkResults[idx].tags=[...tags];
+            if(asTraining) {
+              this.bulkResults[idx]._trained=true;
+              this._trainedIds.add(parseInt(id));
+              localStorage.setItem('tm_trainedIds', JSON.stringify([...this._trainedIds]));
+              this._recomputeVisible();
+            }
+          }
+          saved++;
+        } catch { failed++; }
+      })
+    );
+
+    this.bulkSaveMsg=saved+' saved'+(failed?' ('+failed+' failed)':'');
+    toast(saved+' items updated'+(asTraining?' as training examples':''),'ok');
+    setTimeout(()=>{this.bulkSaveMsg='';},3000);
+  },
+
+};}
+
+// FIX: auto-auth on page load — if stored key is valid, mark authed=true so the gate stays hidden
+document.addEventListener('alpine:init', () => {
+  const KEY = localStorage.getItem('tm_key');
+  if (KEY) {
+    fetch('/api/cities',{headers:{Authorization:KEY}})
+      .then(r => {
+        if(r.ok) {
+          // Patch the Alpine component's authed state
+          document.querySelector('[x-data]')._x_dataStack?.[0] &&
+            (document.querySelector('[x-data]')._x_dataStack[0].authed = true);
+        }
+      })
+      .catch(()=>{});
   }
-})();
+});
 </script>
 </body>
 </html>

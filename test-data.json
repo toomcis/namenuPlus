@@ -1,0 +1,20 @@
+{
+  "_comment": "Configuration for tester.py — edit base_url and api_key before running",
+  "base_url": "http://localhost:2332",
+  "api_key": "j_e1kHrypen-lEq45i7fGSYZ9FiH8Qen2WPI5lMK9y4",
+
+  "known_city_slug": "levice",
+  "known_restaurant_slug": null,
+  "known_date": null,
+
+  "expected": {
+    "city_fields":       ["id", "name", "slug", "url"],
+    "restaurant_fields": ["id", "name", "slug", "address", "delivery", "active_days"],
+    "menu_item_fields":  ["type", "name"],
+    "feed_item_fields":  ["type", "name", "restaurant_name", "restaurant_slug", "tags"],
+    "week_entry_fields": ["date", "has_data", "item_count"],
+    "item_types":        ["soup", "main", "dessert"],
+    "min_cities":        1,
+    "min_restaurants":   1
+  }
+}

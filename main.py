@@ -1,12 +1,12 @@
 # main.py — CLI tool for ToMenu administration
-# main.db holds: api_keys, scrape_log (cross-scraper audit trail)
-# namenu.db (and future *.db) hold scraper-specific data
+# main.db holds: api_keys, scrape_log, cron_schedule, bugs, ntfy_config,
+#                api_key_stats, ml_models
 #
 # Usage:
 #   python main.py --add-key "my app"
 #   python main.py --list-keys
 #   python main.py --revoke-key 3
-#   python main.py --scrape-log        (show recent scrape audit entries)
+#   python main.py --scrape-log
 
 import sqlite3
 import hashlib
@@ -40,6 +40,50 @@ def init_db(conn):
             status      TEXT NOT NULL DEFAULT 'running',
             items       INTEGER DEFAULT 0,
             error       TEXT
+        );
+
+        CREATE TABLE IF NOT EXISTS cron_schedule (
+            id          INTEGER PRIMARY KEY,
+            schedule    TEXT NOT NULL,
+            updated_at  TEXT
+        );
+
+        CREATE TABLE IF NOT EXISTS bugs (
+            id               INTEGER PRIMARY KEY,
+            city_slug        TEXT,
+            restaurant_slug  TEXT,
+            item_id          INTEGER,
+            type             TEXT NOT NULL,
+            description      TEXT,
+            status           TEXT NOT NULL DEFAULT 'open',
+            created_at       TEXT NOT NULL,
+            resolved_at      TEXT
+        );
+
+        CREATE TABLE IF NOT EXISTS ntfy_config (
+            id          INTEGER PRIMARY KEY,
+            server_url  TEXT NOT NULL DEFAULT 'https://ntfy.sh',
+            topic       TEXT NOT NULL DEFAULT 'tomenu-admin',
+            private     INTEGER NOT NULL DEFAULT 0,
+            auth_token  TEXT,
+            updated_at  TEXT
+        );
+
+        CREATE TABLE IF NOT EXISTS api_key_stats (
+            id        INTEGER PRIMARY KEY,
+            key_id    INTEGER NOT NULL,
+            date      TEXT NOT NULL,
+            call_count INTEGER NOT NULL DEFAULT 0,
+            UNIQUE(key_id, date)
+        );
+
+        CREATE TABLE IF NOT EXISTS ml_models (
+            id         INTEGER PRIMARY KEY,
+            name       TEXT NOT NULL,
+            version    TEXT NOT NULL,
+            status     TEXT NOT NULL DEFAULT 'dev',
+            created_at TEXT NOT NULL,
+            notes      TEXT
         );
     """)
     conn.commit()
@@ -107,7 +151,6 @@ def revoke_api_key(key_id):
 # ── scrape log ────────────────────────────────────────────────────────────────
 
 def scrape_log_start(source: str) -> int:
-    """Call at the start of a scrape run. Returns the log entry id."""
     conn = get_conn()
     cur = conn.execute(
         "INSERT INTO scrape_log (source, started_at, status) VALUES (?, ?, 'running')",
@@ -120,7 +163,6 @@ def scrape_log_start(source: str) -> int:
 
 
 def scrape_log_finish(log_id: int, items: int, error: str = None):
-    """Call at the end of a scrape run to record result."""
     conn = get_conn()
     status = "error" if error else "ok"
     conn.execute(
@@ -162,7 +204,6 @@ if __name__ == "__main__":
         print("  python main.py --scrape-log           show recent scrape log")
         print("")
         print("  To scrape:  python -X utf8 scrapers/namenu.scrape.py [--today|--day <slug>]")
-        print("          or: ./scrapeAll.sh [--today|--day <slug>]")
         sys.exit(0)
 
     if args[0] == "--add-key":

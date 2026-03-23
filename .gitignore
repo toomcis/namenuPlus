@@ -3,7 +3,7 @@ namenu.db
 .devdbrc
 
 # random files i want gone
-old_main.py
+main.db
 
 # fuckass files
 node_modules/

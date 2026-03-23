@@ -1,3 +1,4 @@
+# docker-compose.yml
 services:
   tomenu:
     build:
@@ -8,14 +9,20 @@ services:
     container_name: tomenu-api
     environment:
       - PORT=2332
+      - RESTAURANT_API_PORT=6333
+      # To switch to hosted restaurant DB, uncomment and set:
+      # - RESTAURANT_API_URL=https://restaurant.tomenu.sk
+      # - RESTAURANT_API_KEY=your-key-here
       - MAIN_DB=/app/data/main.db
       - NAMENU_DB=/app/data/namenu.db
     ports:
       - "2332:2332"
+      # Restaurant API is intentionally NOT exposed externally.
+      # It only serves the main backend on the internal Docker network.
+      # Uncomment below only for local debugging:
+      # - "6333:6333"
     volumes:
-      - tomenu_data:/app/data   # persists both main.db and namenu.db
-    tty: true
-    stdin_open: true
+      - tomenu_data:/app/data
 
 volumes:
   tomenu_data:

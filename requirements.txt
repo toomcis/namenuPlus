@@ -2,3 +2,7 @@ requests
 beautifulsoup4
 uvicorn
 fastapi
+rich
+httpx
+python-multipart
+scikit-learn

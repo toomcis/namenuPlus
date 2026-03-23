@@ -1,0 +1,101 @@
+{
+  "trained_at": "2026-03-22T12:35:07.745841",
+  "examples": 36,
+  "ml_examples": 36,
+  "labels": 18,
+  "label_names": [
+    "baked",
+    "chicken",
+    "dairy",
+    "dessert",
+    "egg",
+    "fish",
+    "fried",
+    "meat",
+    "pasta",
+    "pizza",
+    "pork",
+    "rice",
+    "salad",
+    "soup",
+    "steamed",
+    "stewed", 
+    "sweet",
+    "vegetarian"
+  ],
+  "tag_stats": [
+    {
+      "tag": "dairy",
+      "count": 17
+    },
+    {
+      "tag": "vegetarian",
+      "count": 15
+    },
+    {
+      "tag": "egg",
+      "count": 15
+    },
+    {
+      "tag": "salad",
+      "count": 13
+    },
+    {
+      "tag": "dessert",
+      "count": 13
+    },
+    {
+      "tag": "sweet",
+      "count": 13
+    },
+    {
+      "tag": "meat",
+      "count": 11
+    },
+    {
+      "tag": "pork",
+      "count": 9
+    },
+    {
+      "tag": "rice",
+      "count": 7
+    },
+    {
+      "tag": "fried",
+      "count": 4
+    },
+    {
+      "tag": "baked",
+      "count": 4
+    },
+    {
+      "tag": "steamed",
+      "count": 4
+    },
+    {
+      "tag": "soup",
+      "count": 4
+    },
+    {
+      "tag": "chicken",
+      "count": 4
+    },
+    {
+      "tag": "fish",
+      "count": 3
+    },
+    {
+      "tag": "pasta",
+      "count": 3
+    },
+    {
+      "tag": "pizza",
+      "count": 2
+    },
+    {
+      "tag": "stewed",
+      "count": 2
+    }
+  ],
+  "model_path": "ml/model.pkl"
+}
